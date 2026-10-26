@@ -248,9 +248,12 @@ export default function Encargado() {
       && (!studentFilters.group || student.group === studentFilters.group)
       && (!studentFilters.shift || (student.shift || 'Matutino') === studentFilters.shift);
   }).sort((studentA, studentB) => (
-    formatLastNamesFirst(studentA.fullName || '').localeCompare(
+    Number(studentA.semester) - Number(studentB.semester)
+    || (studentA.group || '').localeCompare(studentB.group || '', 'es-MX', { sensitivity: 'base' })
+    || (studentA.career || '').localeCompare(studentB.career || '', 'es-MX', { sensitivity: 'base' })
+    || formatLastNamesFirst(studentA.fullName || '').localeCompare(
       formatLastNamesFirst(studentB.fullName || ''),
-      'es',
+      'es-MX',
       { sensitivity: 'base' }
     )
   ));
