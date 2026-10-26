@@ -40,7 +40,7 @@ export default function Login() {
     <div>
       <header className="topbar">
         <Link className="wordmark" to="/login" aria-label="JutificaT, inicio">Jutifica<span>T</span></Link>
-        <span className="topbar-caption">Justificantes escolares</span>
+        <span className="topbar-caption"></span>
         <img className="account-mark" src="/dgti.png" alt="DGETI" />
       </header>
 
@@ -51,8 +51,9 @@ export default function Login() {
 
         <section className="login-panel" aria-labelledby="login-title">
           <div className="login-content">
-            <h1 id="login-title">Iniciar <span>Sesión</span></h1>
-            <p className="login-intro">Ingresa con tu cuenta escolar para solicitar y consultar tus justificantes.</p>
+            <h1 id="login-title">Iniciar<br />
+              <span>Sesión</span>
+            </h1>
 
             <form className="login-card" id="login-form" onSubmit={handleSubmit}>
               <div className="field">
