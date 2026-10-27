@@ -113,18 +113,6 @@ button { cursor: pointer; }
     isolation: isolate;
 }
 
-.poster-panel::before {
-    position: absolute;
-    z-index: -1;
-    inset: 6% 8%;
-    border: 1px solid rgba(151, 23, 28, .12);
-    border-radius: 48% 48% 20px 20px;
-    background:
-        radial-gradient(ellipse at 50% 38%, rgba(207, 124, 130, .13), transparent 56%),
-        linear-gradient(160deg, rgba(255, 255, 255, .55), rgba(250, 238, 226, .2));
-    content: "";
-}
-
 .school-poster {
     width: min(100%, 440px);
     max-height: min(76vh, 630px);
@@ -1862,6 +1850,23 @@ input[readonly] {
     .print-content .certificate-actions { grid-column: 1; }
 }
 
+@media (max-width: 760px) {
+    .login-layout {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 8px;
+        padding: 24px clamp(20px, 5vw, 40px) 36px;
+    }
+    .poster-panel {
+        width: min(100%, 320px);
+        height: clamp(210px, 34vh, 280px);
+        min-height: 0;
+        justify-self: center;
+    }
+    .school-poster { width: min(100%, 280px); max-height: 280px; }
+    .login-panel { min-height: 0; }
+    .login-content { width: min(100%, 460px); }
+}
+
 @media (max-width: 720px) {
     .staff-label { display: none; }
     .staff-section { width: 100%; padding: 17px; }
@@ -1889,8 +1894,7 @@ input[readonly] {
         min-height: 205px;
         justify-self: center;
     }
-    .poster-panel::before { inset: 5% 7%; }
-    .school-poster { max-height: 100%; }
+    .school-poster { max-height: min(39vh, 300px); }
     .login-content { width: min(100%, 460px); }
     .eyebrow { margin-bottom: 10px; }
     .login-content h1 { font-size: clamp(50px, 11vw, 64px); }
@@ -1993,6 +1997,7 @@ input[readonly] {
     .topbar-caption { display: none; }
     .login-layout { padding: 12px 16px 26px; gap: 2px; }
     .poster-panel { height: 205px; min-height: 205px; }
+    .school-poster { max-height: 205px; }
     .login-card { padding: 20px 18px 18px; }
     .field label { font-size: 12px; }
     .field input { height: 45px; }

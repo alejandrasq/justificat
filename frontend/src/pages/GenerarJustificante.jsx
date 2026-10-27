@@ -93,7 +93,7 @@ export default function GenerarJustificante() {
         <Link className="wordmark" to="/encargado" aria-label="JutificaT, volver al panel">
           Jutifica<span>T</span>
         </Link>
-        <span className="staff-label">Panel de Control Escolar</span>
+        <span className="staff-label"></span>
         <div className="staff-header-actions">
           <div className="print-account-menu">
             <button
