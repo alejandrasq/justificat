@@ -1,12 +1,15 @@
 const INSTITUTIONAL_EMAIL_PATTERN = /^[^\s@]+@cbtis258\.edu\.mx$/i;
+const GMAIL_PATTERN = /^[^\s@]+@gmail\.com$/i;
 
 function isInstitutionalEmail(value) {
   return typeof value === 'string' && INSTITUTIONAL_EMAIL_PATTERN.test(value.trim());
 }
 
 function isAllowedStaffAccount(value) {
-  return isInstitutionalEmail(value)
-    || (typeof value === 'string' && value.trim().toLowerCase() === 'justificat');
+  return typeof value === 'string' && (
+    GMAIL_PATTERN.test(value.trim())
+    || value.trim().toLowerCase() === 'justificat'
+  );
 }
 
 function normalizePersonName(value) {

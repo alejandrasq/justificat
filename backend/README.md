@@ -14,7 +14,7 @@ Si Vite se ejecuta en un origen distinto de `http://localhost:5173`, actualiza `
 
 ## Crear una cuenta de encargado
 
-Desde esta carpeta ejecuta `npm run create-staff` en una terminal interactiva. El comando solicita correo, nombre y una contraseña de al menos 12 caracteres, que no se muestra al escribir. Las cuentas de encargado se crean en `personal`; el registro público siempre crea alumnos en `alumnos`.
+Desde esta carpeta ejecuta `npm run create-staff` en una terminal interactiva. El comando solicita una cuenta `@gmail.com`, nombre y una contraseña de al menos 12 caracteres, que no se muestra al escribir. Las cuentas de encargado se crean en `personal`; el registro público siempre crea alumnos en `alumnos`.
 
 ## Folios de justificantes
 

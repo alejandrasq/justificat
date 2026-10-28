@@ -66,12 +66,12 @@ function askHidden(question) {
 }
 
 async function main() {
-  const account = (await ask('Cuenta del encargado (correo institucional o justificat): ')).toLowerCase();
+  const account = (await ask('Cuenta Gmail del encargado: ')).toLowerCase();
   const fullName = await ask('Nombre completo: ');
   const password = await askHidden('Contraseña (mínimo 12 caracteres; no se mostrará): ');
 
   if (!isAllowedStaffAccount(account)) {
-    throw new Error('Usa un correo @cbtis258.edu.mx o la cuenta especial justificat.');
+    throw new Error('Usa una cuenta @gmail.com válida.');
   }
   if (!isValidPersonName(fullName)) {
     throw new Error('El nombre solo debe contener letras y espacios.');

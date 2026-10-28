@@ -246,7 +246,7 @@ router.put('/staff-profile', requireAuth, requireRole('staff'), requireSameOrigi
       return res.status(422).json({ error: 'Completa tu nombre y cuenta, y escribe tu contraseña actual para confirmar los cambios.' });
     }
     if (!isAllowedStaffAccount(account)) {
-      return res.status(422).json({ error: 'Usa el correo @cbtis258.edu.mx o la cuenta autorizada justificat.' });
+      return res.status(422).json({ error: 'Usa una cuenta @gmail.com válida.' });
     }
     if (!isValidPersonName(fullName)) {
       return res.status(422).json({ error: 'El nombre solo debe contener letras y espacios.' });

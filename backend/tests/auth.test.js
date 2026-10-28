@@ -25,10 +25,12 @@ test('institutional email validation only accepts the school domain', () => {
   assert.equal(isInstitutionalEmail('student name@cbtis258.edu.mx'), false);
 });
 
-test('only the exact justificat staff account can omit the institutional domain', () => {
+test('staff accounts accept Gmail addresses and the legacy justificat account', () => {
   assert.equal(isAllowedStaffAccount('justificat'), true);
   assert.equal(isAllowedStaffAccount('JUSTIFICAT'), true);
-  assert.equal(isAllowedStaffAccount('staff@cbtis258.edu.mx'), true);
+  assert.equal(isAllowedStaffAccount('staff@gmail.com'), true);
+  assert.equal(isAllowedStaffAccount('STAFF@GMAIL.COM'), true);
+  assert.equal(isAllowedStaffAccount('staff@cbtis258.edu.mx'), false);
   assert.equal(isAllowedStaffAccount('other-account'), false);
   assert.equal(isAllowedStaffAccount('justificat@example.com'), false);
 });
