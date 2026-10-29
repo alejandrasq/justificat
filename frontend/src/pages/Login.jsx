@@ -40,7 +40,7 @@ export default function Login() {
   return (
     <div>
       <header className="topbar">
-        <Link className="wordmark" to="/login" aria-label="JutificaT, inicio">Jutifica<span>T</span></Link>
+        <Link className="wordmark" to="/login" aria-label="JustificaT, inicio">Justifica<span>T</span></Link>
         <span className="topbar-caption"></span>
         <img className="account-mark" src="/dgti.png" alt="DGETI" />
       </header>

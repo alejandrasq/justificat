@@ -228,7 +228,7 @@ export default function Justificar() {
   return (
     <div>
       <header className="topbar staff-topbar staff-dashboard-topbar">
-        <div className="wordmark">Jutifica<span>T</span></div>
+        <div className="wordmark">Justifica<span>T</span></div>
         <span className="staff-label"></span>
         <div className="staff-header-actions">
           <div className="account-menu">

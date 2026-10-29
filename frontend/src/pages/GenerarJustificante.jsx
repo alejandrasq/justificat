@@ -90,8 +90,8 @@ export default function GenerarJustificante() {
   return (
     <div className="print-page">
       <header className="topbar staff-topbar staff-dashboard-topbar print-toolbar">
-        <Link className="wordmark" to="/encargado" aria-label="JutificaT, volver al panel">
-          Jutifica<span>T</span>
+        <Link className="wordmark" to="/encargado" aria-label="JustificaT, volver al panel">
+          Justifica<span>T</span>
         </Link>
         <span className="staff-label"></span>
         <div className="staff-header-actions">
@@ -218,12 +218,18 @@ export default function GenerarJustificante() {
                 </div>
                 <div className="field">
                   <label>Motivo de la falta</label>
-                  <input
-                    type="text"
+                  <select
                     value={formData.reason}
                     onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                     aria-label="Motivo de la falta"
-                  />
+                  >
+                    <option value="" disabled>Selecciona un motivo</option>
+                    <option value="Médico">Médico</option>
+                    <option value="Familiar">Familiar</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Legal">Legal</option>
+                    <option value="Otro">Otro</option>
+                  </select>
                 </div>
                 <div className="field">
                   <label>Descripción</label>
@@ -239,16 +245,9 @@ export default function GenerarJustificante() {
 
             <article className="certificate">
               <header className="certificate-header">
-                <div className="education-mark">
-                  <strong>EDUCACIÓN</strong>
-                  <span>SECRETARÍA DE EDUCACIÓN PÚBLICA</span>
-                </div>
-                <img className="dgti-mark" src="/dgti.png" alt="DGETI" />
-                <div className="school-heading">
-                  <strong>Subsecretaría de Educación Media Superior</strong>
-                  <span>Dirección General de Educación Tecnológica Industrial y de Servicios</span>
-                  <span>Centro de Bachillerato Tecnológico industrial y de servicios No. 258</span>
-                </div>
+                <img className="sep-mark" src="/LOGO-SEP.png" alt="Secretaría de Educación Pública" />
+                <img className="dgti-mark" src="/logo_dgeti.png" alt="DGETI" />
+                <div className="certificate-wordmark" aria-label="JustificaT">Justifica<span>T</span></div>
               </header>
 
               <div className="certificate-title-row">
@@ -260,29 +259,43 @@ export default function GenerarJustificante() {
               <p className="teacher-instruction">C. Docentes favor de tomar en cuenta el presente justificante del alumno:</p>
 
               <section className="student-data">
-                <p><strong>NOMBRE DEL ALUMNO:</strong> <span>{request.studentName}</span></p>
-                <p><strong>MATRÍCULA:</strong> <span>{request.studentId}</span></p>
-                <p><strong>CARRERA:</strong> <span>{request.career}</span></p>
-                <p><strong>SEMESTRE:</strong> <span>{request.semester}°</span></p>
-                <p><strong>GRUPO:</strong> <span>{request.group}</span></p>
-                <p><strong>TURNO:</strong> <span>{request.shift || 'Matutino'}</span></p>
+                <div className="student-data-grid">
+                  <p className="student-name"><strong>NOMBRE DEL ALUMNO:</strong> <span className="student-primary-value">{request.studentName}</span></p>
+                  <p><strong>CARRERA:</strong> <span>{request.career}</span></p>
+                  <p><strong>MATRÍCULA:</strong> <span className="student-primary-value">{request.studentId}</span></p>
+                  <p><strong>SEMESTRE:</strong> <span>{request.semester}°</span></p>
+                  <p><strong>GRUPO:</strong> <span>{request.group}</span></p>
+                  <p><strong>TURNO:</strong> <span className="student-primary-value">{request.shift || 'Matutino'}</span></p>
+                </div>
               </section>
+
+              <div className="certificate-detail-grid">
+                <section className="certificate-detail-block">
+                  <strong>MOTIVO DE INASISTENCIA:</strong>
+                  <span className="motive-value">{formData.reason}</span>
+                </section>
+                <section className="certificate-detail-block">
+                  <strong className="description-label">DESCRIPCIÓN DETALLADA:</strong>
+                  <span>{formData.description}</span>
+                </section>
+              </div>
 
               <section className="issue-dates">
                 <p><strong>FECHA DE ELABORACIÓN:</strong> <span>{issueDate}</span></p>
+                <p className="absence-period"><strong>FECHA(S) A JUSTIFICAR:</strong> <span className="date-value">{formatDate(formData.startDate)} al {formatDate(formData.endDate)}</span></p>
               </section>
-              <p className="absence-period"><strong>FECHA(S) DE INASISTENCIA:</strong> <span>{formatDate(formData.startDate)} al {formatDate(formData.endDate)}</span></p>
-
-              <p className="reason-line"><strong>MOTIVO:</strong> <span>{formData.reason}</span></p>
-              {formData.description.trim() && (
-                <p className="reason-line"><strong>DESCRIPCIÓN:</strong> <span>{formData.description}</span></p>
-              )}
+              <br></br>
+             
 
               <table className="attendance-table">
                 <thead>
                   <tr><th>HORA</th><th>MATERIA</th><th>FIRMA DEL MAESTRO</th></tr>
                 </thead>
                 <tbody>
+                  <tr><td></td><td></td><td></td></tr>
+                  <tr><td></td><td></td><td></td></tr>
+                  <tr><td></td><td></td><td></td></tr>
+                  <tr><td></td><td></td><td></td></tr>
                   <tr><td></td><td></td><td></td></tr>
                   <tr><td></td><td></td><td></td></tr>
                   <tr><td></td><td></td><td></td></tr>

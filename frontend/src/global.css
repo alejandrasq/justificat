@@ -59,11 +59,15 @@ button { cursor: pointer; }
 }
 
 .wordmark {
+    position: relative;
+    display: inline-block;
+    width: max-content;
+    padding-bottom: 12px;
     color: #171313;
     font-family: Georgia, "Times New Roman", serif;
     font-size: 36px;
-    font-weight: 600;
-    letter-spacing: -1.5px;
+    font-weight: 700;
+    letter-spacing: -1.8px;
     text-decoration: none;
 }
 
@@ -74,6 +78,17 @@ button { cursor: pointer; }
     font-style: italic;
     font-weight: 700;
     letter-spacing: -.06em;
+}
+
+.wordmark::after {
+    position: absolute;
+    right: 0;
+    bottom: 1px;
+    left: 0;
+    height: 5px;
+    background: var(--wine);
+    content: "";
+    clip-path: polygon(0 0, 47% 0, 50% 35%, 53% 0, 100% 0, 100% 45%, 53% 45%, 50% 100%, 47% 45%, 0 45%);
 }
 
 .topbar-caption {
@@ -274,6 +289,7 @@ button { cursor: pointer; }
 
 .login-content h1 span {
     display: block;
+    margin-left: clamp(0px, 16vw, 165px);
     color: var(--red);
     font-style: italic;
 }
@@ -680,7 +696,9 @@ h1 {
     margin-top: 26px;
     padding-top: 24px;
     border-top: 1px solid #f0e8e5;
-}
+    font-weight: 900 !important;
+    -webkit-text-stroke: .15px currentColor;
+    }
 
 .field-grid {
     display: grid;
@@ -1644,7 +1662,7 @@ input[readonly] {
     margin: 0;
     color: var(--wine-dark);
     font-family: Georgia, "Times New Roman", serif;
-    font-size: 20px;
+    font-size: 28px;
     letter-spacing: -.03em;
 }
 .print-editor-heading .section-number { flex: 0 0 auto; }
@@ -1833,21 +1851,46 @@ input[readonly] {
 
 .certificate-header {
     display: grid;
-    grid-template-columns: 1fr 44px 1.9fr;
+    grid-template-columns: 1fr 210px 1fr;
     align-items: center;
     gap: 8px;
-    min-height: 60px;
-    padding-bottom: 9px;
+    min-height: 62px;
+    padding-bottom: 6px;
     border-bottom: 1px solid #d8d8d8;
 }
 
 .education-mark { color: #343434; }
 .education-mark strong { display: block; font-family: Georgia, serif; font-size: 16px; letter-spacing: .02em; }
-.education-mark span { display: block; margin-top: 3px; font-size: 5px; letter-spacing: .04em; }
-.dgti-mark { width: 42px; height: 42px; object-fit: contain; }
-.school-heading { display: flex; flex-direction: column; gap: 3px; text-align: right; }
+.education-mark span { display: block; margin-top: 1px; font-size: 5px; letter-spacing: .04em; }
+.sep-mark { width: 165px; height: auto; object-fit: contain; }
+.dgti-mark { width: 100%; height: auto; max-height: 70px; object-fit: contain; }
+.school-heading { display: flex; flex-direction: column; gap: 1px; text-align: right; line-height: 1.15; }
 .school-heading strong { font-size: 7px; }
 .school-heading span { font-size: 6px; }
+.certificate-wordmark {
+    position: relative;
+    display: inline-block;
+    justify-self: end;
+    padding-bottom: 9px;
+    color: #202020;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -.06em;
+    text-align: right;
+    white-space: nowrap;
+}
+.certificate-wordmark span { color: var(--red); font-style: italic; }
+.certificate-wordmark::after {
+    position: absolute;
+    right: 0;
+    bottom: 1px;
+    left: 0;
+    height: 4px;
+    background: var(--wine);
+    content: "";
+    clip-path: polygon(0 0, 47% 0, 50% 35%, 53% 0, 100% 0, 100% 45%, 53% 45%, 50% 100%, 47% 45%, 0 45%);
+}
 
 .certificate-title-row {
     position: relative;
@@ -1879,9 +1922,55 @@ input[readonly] {
 
 .teacher-instruction { margin: 0 0 12px; line-height: 1.45; }
 .student-data p, .issue-dates p { min-height: 16px; margin: 0; line-height: 1.55; }
+.student-data-pair { display: flex; gap: 60px; }
 .student-data strong, .issue-dates strong, .absence-period strong, .reason-line strong { font-size: 9px; }
 .student-data span { font-weight: 600; }
+.student-data .student-primary-value { color: #111; font-weight: 900; }
+.student-data-grid {
+    display: grid;
+    grid-template-columns: 1.7fr 1.1fr 1fr;
+    column-gap: 22px;
+}
+.student-data-grid .student-name { grid-column: 1 / -1; }
+.certificate-detail-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2px;
+    padding: 2px 8px;
+    border-top: 1px solid #c9c9c9;
+    border-bottom: 1px solid #c9c9c9;
+    text-align: center;
+}
+.certificate-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+.certificate-detail-block strong {
+    color: #111;
+    font-family: "Arial Black", Arial, sans-serif;
+    font-size: 9px;
+    font-style: italic;
+    font-weight: 900;
+}
+.certificate-detail-block .description-label {
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: normal;
+    font-weight: 900;
+}
+.issue-dates .date-value { color: #111; font-weight: 900; }
+.certificate-detail-block .motive-value {
+    margin-top: 1px;
+    color: #242424;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 10px;
+    font-style: italic;
+    font-weight: 900 !important;
+    -webkit-text-stroke: .15px currentColor;
+}
 .issue-dates { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px 12px; margin-top: 10px; }
+.issue-dates .absence-period { margin: 0 0 0 auto; text-align: right; }
 .absence-period { margin: 8px 0; line-height: 1.5; }
 
 .absence-kind {
@@ -1921,7 +2010,7 @@ input[readonly] {
     border: 1px solid #555;
 }
 
-.attendance-table th { height: 25px; font-size: 9px; }
+.attendance-table th { height: 25px; background: white; font-size: 9px; }
 .attendance-table th:first-child, .attendance-table td:first-child { width: 29%; }
 .attendance-table th:nth-child(2), .attendance-table td:nth-child(2) { width: 33%; }
 .attendance-table th:nth-child(3), .attendance-table td:nth-child(3) { width: 38%; }
@@ -2021,6 +2110,7 @@ input[readonly] {
     .login-content { width: min(100%, 460px); }
     .eyebrow { margin-bottom: 10px; }
     .login-content h1 { font-size: clamp(50px, 11vw, 64px); }
+    .login-content h1 span { margin-left: 0; }
     .login-intro { margin: 13px 0 17px; font-size: 13px; }
     .login-card { padding: 23px clamp(20px, 7vw, 34px) 21px; border-radius: 20px; }
     .registration-card { padding: 21px clamp(20px, 7vw, 34px); }
@@ -2082,12 +2172,14 @@ input[readonly] {
     .print-back-link { font-size: 11px; }
     .page-layout { padding: 14px 10px 30px; }
     .certificate { padding: 22px 13px; font-size: 9px; }
-    .certificate-header { grid-template-columns: 1fr 39px 1.5fr; gap: 6px; }
+    .certificate-header { grid-template-columns: 1fr 150px 1fr; gap: 6px; }
     .education-mark strong { font-size: 13px; }
     .education-mark span { font-size: 5px; }
-    .dgti-mark { width: 38px; height: 38px; }
+    .sep-mark { width: 125px; }
+    .dgti-mark { max-height: 52px; }
     .school-heading strong { font-size: 6px; }
     .school-heading span { font-size: 5px; }
+    .certificate-wordmark { font-size: 19px; }
     .certificate-title-row { min-height: 18px; margin: 18px 0 10px; }
     .certificate-title { font-size: 13px; }
     .certificate-folio, .certificate-folio strong { font-size: 8px; }
@@ -2170,36 +2262,45 @@ input[readonly] {
     .certificate {
         width: 100%;
         max-width: none;
-        min-height: 5.15in;
+        min-height: 10.4in;
         padding: 0 0.1in;
         border: 0;
         box-shadow: none;
         font-size: 8pt;
+        display: flex;
+        flex-direction: column;
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
         break-inside: avoid;
         page-break-inside: avoid;
     }
-    .certificate-header { grid-template-columns: 1fr 34px 1.8fr; gap: 5px; min-height: 48px; }
+    .certificate-header { grid-template-columns: 1fr 210px 1fr; gap: 4px; min-height: 54px; padding-bottom: 2px; }
     .education-mark strong { font-size: 12pt; }
     .education-mark span { font-size: 4pt; }
-    .dgti-mark { width: 32px; height: 32px; }
+    .sep-mark { width: 155px; }
+    .dgti-mark { max-height: 64px; }
     .school-heading strong { font-size: 5pt; }
     .school-heading span { font-size: 4.5pt; }
-    .certificate-title-row { min-height: 16pt; margin: 12px 0 8px; }
+    .school-heading { gap: 1px; }
+    .certificate-wordmark { font-size: 18pt; }
+    .certificate-title-row { min-height: 12pt; margin: 5px 0 3px; }
     .certificate-title { font-size: 11pt; }
     .certificate-folio, .certificate-folio strong { font-size: 7pt; }
-    .teacher-instruction { margin-bottom: 8px; font-size: 7pt; }
-    .student-data p, .issue-dates p, .absence-period, .reason-line { font-size: 7pt; }
-    .student-data p, .issue-dates p { min-height: 13px; }
+    .teacher-instruction { margin-bottom: 4px; font-size: 7pt; }
+    .student-data p, .issue-dates p, .absence-period, .reason-line, .certificate-detail-block { font-size: 7pt; }
+    .student-data p, .issue-dates p { min-height: 10px; line-height: 1.25; }
     .student-data strong, .issue-dates strong, .absence-period strong, .reason-line strong { font-size: 6.5pt; }
-    .issue-dates { margin-top: 7px; }
-    .absence-period { margin: 6px 0; }
+    .certificate-detail-block strong { font-size: 6.5pt; }
+    .certificate-detail-block { margin-top: 0; padding-top: 1px; padding-bottom: 1px; }
+    .certificate-detail-grid { gap: 8px; }
+    .certificate-detail-block span { margin-top: 0; font-size: 7pt; }
+    .issue-dates { margin-top: 3px; }
+    .absence-period { margin: 2px 0; }
     .reason-line { min-height: 18px; margin-bottom: 3px; padding: 2px 0; }
     .attendance-table { font-size: 6.5pt; }
     .attendance-table th { font-size: 6pt; }
-    .attendance-table th, .attendance-table td { height: 0.24in; padding: 3px 4px; }
-    .certificate-footer { margin-top: .28in; gap: 3px; }
-    .certificate-footer strong { font-size: 7pt; }
+    .attendance-table th, .attendance-table td { height: 0.14in; padding: 2px 3px; }
+    .certificate-footer { margin-top: 0; padding-top: 0; gap: 1px; }
+    .certificate-footer strong { margin-top: 1px; font-size: 7pt; }
     .certificate-footer span { font-size: 6.5pt; }
 }

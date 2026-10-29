@@ -77,7 +77,7 @@ export default function Register() {
   return (
     <div className="registration-page">
       <header className="topbar">
-        <Link className="wordmark" to="/login" aria-label="JutificaT, iniciar sesión">Jutifica<span>T</span></Link>
+        <Link className="wordmark" to="/login" aria-label="JustificaT, iniciar sesión">Justifica<span>T</span></Link>
         <span className="topbar-caption">Portal de justificantes escolares</span>
         <img className="account-mark" src="/dgti.png" alt="DGETI" />
       </header>
