@@ -12,7 +12,7 @@ const {
   requireAuth,
   requireRole,
   requireSameOrigin,
-  setSessionCookie
+  createSessionToken
 } = require('../middleware/auth');
 
 const VALID_CAREERS = [
@@ -138,11 +138,12 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'La cuenta o la contraseña no son correctas.' });
     }
 
-    setSessionCookie(res, user._id, role);
+    clearSessionCookie(res);
 
-    // Respuesta con los datos del usuario
+    // El token viaja en el cuerpo para que el frontend lo conserve por pestaña.
     res.status(200).json({
-      user: publicUser(user, role)
+      user: publicUser(user, role),
+      sessionToken: createSessionToken(user._id, role)
     });
 
   } catch (error) {

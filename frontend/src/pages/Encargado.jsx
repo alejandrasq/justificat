@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api';
+import { clearSessionToken } from '../authSession';
 import { formatDate } from '../utils/date';
 import { getInitials } from '../utils/initials';
 import { formatLastNamesFirst } from '../utils/personName';
@@ -214,13 +215,9 @@ export default function Encargado() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await api.post('/logout');
-      navigate('/login');
-    } catch {
-      showToast('No se pudo cerrar la sesión. Inténtalo de nuevo.', true);
-    }
+  const handleLogout = () => {
+    clearSessionToken();
+    navigate('/login');
   };
 
   const openProfile = () => {

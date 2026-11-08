@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { clearSessionToken } from '../authSession';
 import { formatDate } from '../utils/date';
 import { getInitials } from '../utils/initials';
 import LoadingState from '../components/LoadingState';
@@ -81,13 +82,9 @@ export default function Justificar() {
     };
   }, [fetchUserRequests, navigate]);
 
-  const handleLogout = async () => {
-    try {
-      await api.post('/logout');
-      navigate('/login');
-    } catch {
-      showToast('No se pudo cerrar la sesión. Inténtalo de nuevo.', true);
-    }
+  const handleLogout = () => {
+    clearSessionToken();
+    navigate('/login');
   };
 
   const openProfile = () => {

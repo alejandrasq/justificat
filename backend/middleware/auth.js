@@ -64,30 +64,6 @@ function verifySessionToken(token, now = Date.now()) {
   }
 }
 
-function getCookie(req, name) {
-  const cookies = (req.headers.cookie || '').split(';');
-  const cookie = cookies.find((part) => part.trim().startsWith(`${name}=`));
-  if (!cookie) return null;
-
-  try {
-    return decodeURIComponent(cookie.trim().slice(name.length + 1));
-  } catch {
-    return null;
-  }
-}
-
-function setSessionCookie(res, userId, role) {
-  const parts = [
-    `${COOKIE_NAME}=${encodeURIComponent(createSessionToken(userId, role))}`,
-    `Max-Age=${SESSION_TTL_SECONDS}`,
-    'Path=/',
-    'HttpOnly',
-    'SameSite=Lax'
-  ];
-  if (secureCookie) parts.push('Secure');
-  res.setHeader('Set-Cookie', parts.join('; '));
-}
-
 function clearSessionCookie(res) {
   const parts = [`${COOKIE_NAME}=`, 'Max-Age=0', 'Path=/', 'HttpOnly', 'SameSite=Lax'];
   if (secureCookie) parts.push('Secure');
@@ -103,7 +79,10 @@ function requireSameOrigin(req, res, next) {
 }
 
 async function requireAuth(req, res, next) {
-  const token = getCookie(req, COOKIE_NAME);
+  const authorization = req.get('authorization');
+  const token = typeof authorization === 'string'
+    ? authorization.match(/^Bearer\s+(\S+)$/i)?.[1]
+    : null;
   const session = verifySessionToken(token);
   if (!session) {
     return res.status(401).json({ error: 'Inicia sesión para continuar.' });
@@ -143,6 +122,5 @@ module.exports = {
   requireAuth,
   requireRole,
   requireSameOrigin,
-  setSessionCookie,
   verifySessionToken
 };

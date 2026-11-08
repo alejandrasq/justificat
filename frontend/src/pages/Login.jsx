@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import SchoolIdentity from '../components/SchoolIdentity';
+import { clearSessionToken, saveSessionToken } from '../authSession';
 
 export default function Login() {
   const [account, setAccount] = useState('');
@@ -18,12 +19,14 @@ export default function Login() {
     setLoading(true);
 
     try {
+      clearSessionToken();
       const response = await api.post('/login', {
         account: account.trim().toLowerCase(),
         password,
       });
 
       const user = response.data.user;
+      saveSessionToken(response.data.sessionToken);
       if (user.role === 'staff') {
         navigate('/encargado');
       } else {

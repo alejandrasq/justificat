@@ -99,7 +99,7 @@ test('only staff passes the staff-role guard', () => {
   assert.equal(nextCalled, true);
 });
 
-test('protected routes reject requests without a session cookie', async () => {
+test('protected routes reject requests without a bearer token even if a legacy cookie exists', async () => {
   const response = {
     statusCode: 200,
     status(code) {
@@ -111,8 +111,49 @@ test('protected routes reject requests without a session cookie', async () => {
     }
   };
 
-  await requireAuth({ headers: {} }, response, () => {});
+  await requireAuth({
+    headers: { cookie: 'jutificat_session=legacy-token' },
+    get: () => undefined
+  }, response, () => {});
   assert.equal(response.statusCode, 401);
+});
+
+test('protected routes authenticate using the bearer token for the current tab', async () => {
+  const userId = '507f1f77bcf86cd799439011';
+  const token = createSessionToken(userId, 'staff');
+  const originalFindById = PersonalOrientacion.findById;
+  const req = {
+    headers: {},
+    get: (name) => (name === 'authorization' ? `Bearer ${token}` : undefined)
+  };
+  const res = {
+    statusCode: 200,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json() {
+      return this;
+    }
+  };
+  let nextCalled = false;
+
+  PersonalOrientacion.findById = () => ({
+    select: async () => ({
+      _id: userId,
+      correo: 'staff@example.edu',
+      nombre: 'Personal Escolar'
+    })
+  });
+  try {
+    await requireAuth(req, res, () => { nextCalled = true; });
+  } finally {
+    PersonalOrientacion.findById = originalFindById;
+  }
+
+  assert.equal(nextCalled, true);
+  assert.equal(req.user.role, 'staff');
+  assert.equal(req.user.account, 'staff@example.edu');
 });
 
 test('orientation staff accounts use their dedicated collection and required fields', async () => {

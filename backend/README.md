@@ -20,7 +20,7 @@ El repositorio incluye `render.yaml` en la raíz. En Render, crea un **Blueprint
 - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` y `CLOUDINARY_API_SECRET`: credenciales del servidor de Cloudinary. No las agregues al frontend ni al repositorio.
 - `SESSION_SECRET` se genera automáticamente en Render.
 
-Render construye el frontend de Vite y el backend Express, y sirve ambos desde el mismo dominio para que las cookies de sesión funcionen correctamente. En producción, los comprobantes nuevos se guardan como archivos autenticados en Cloudinary y se recuperan mediante una ruta del backend que requiere sesión de encargado. En desarrollo local, si Cloudinary no está configurado, se mantiene el almacenamiento en `uploads/`.
+Render construye el frontend de Vite y el backend Express, y sirve ambos desde el mismo dominio. En producción, los comprobantes nuevos se guardan como archivos autenticados en Cloudinary y se recuperan mediante una ruta del backend que requiere sesión de encargado. En desarrollo local, si Cloudinary no está configurado, se mantiene el almacenamiento en `uploads/`.
 
 En MongoDB Atlas crea un usuario de base de datos dedicado y permite las conexiones de Render en **Network Access**. Render Free no proporciona IP de salida fija; para conectarlo puede ser necesario permitir `0.0.0.0/0`. Si lo haces, usa un usuario dedicado con permisos mínimos y una contraseña larga y única (nunca un usuario administrador). Render Free puede entrar en reposo; revisa las limitaciones vigentes antes de usarlo con datos escolares reales. Nunca publiques la cadena de conexión ni las claves de Cloudinary.
 
@@ -36,4 +36,4 @@ Los folios se asignan en orden del 1 al 200 y vuelven a empezar en 1. Se guardan
 
 ## Protección de rutas
 
-El acceso usa una cookie `HttpOnly` firmada y de duración limitada. El backend vuelve a consultar la cuenta en la colección correspondiente para cada petición protegida y autoriza las funciones administrativas por el tipo de cuenta. Las solicitudes de alumnos obtienen la identidad escolar desde su cuenta autenticada, no desde los datos enviados por el navegador.
+El acceso usa un token firmado y de duración limitada que el navegador conserva por pestaña, para permitir cuentas distintas en pestañas separadas. El backend vuelve a consultar la cuenta en la colección correspondiente para cada petición protegida y autoriza las funciones administrativas por el tipo de cuenta. Las solicitudes de alumnos obtienen la identidad escolar desde su cuenta autenticada, no desde los datos enviados por el navegador.
