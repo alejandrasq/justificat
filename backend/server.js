@@ -80,8 +80,8 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// En entorno local iniciamos el servidor con app.listen; en Vercel exportamos la app
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+// Render y local usan un servidor HTTP; Vercel importa la app como función serverless.
+if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 5000;
   app.listen(PORT, () => console.log(`Servidor corriendo en http://localhost:${PORT}`));
 }
