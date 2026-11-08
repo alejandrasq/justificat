@@ -1,3 +1,5 @@
+const { decodeCloudinaryReceipt } = require('./cloudinary');
+
 function academicDetails(student) {
   const match = String(student.semestre_grupo || '').match(/^(\d+)\s*[-/ ]?\s*(.*)$/);
   return {
@@ -60,7 +62,10 @@ function publicRequest(request, { folio = '' } = {}) {
   const student = doc.id_alumno || {};
   const { semester, group } = academicDetails(student);
   const receiptPath = doc.receta || doc.prueba || '';
-  const filename = receiptPath.split('/').pop() || '';
+  const cloudinaryReceipt = decodeCloudinaryReceipt(receiptPath);
+  const filename = cloudinaryReceipt
+    ? `cloudinary-${receiptPath.slice('cloudinary:'.length)}`
+    : receiptPath.split('/').pop() || '';
   const status = {
     PENDIENTE: doc.id_personal ? 'review' : 'pending',
     APROBADO: 'issued',
@@ -88,9 +93,9 @@ function publicRequest(request, { folio = '' } = {}) {
     status,
     attachments: filename ? [{
       filename,
-      originalname: filename,
+      originalname: cloudinaryReceipt?.originalName || filename,
       path: receiptPath,
-      mimetype: /\.pdf$/i.test(filename) ? 'application/pdf' : 'image'
+      mimetype: cloudinaryReceipt?.mimetype || (/\.pdf$/i.test(filename) ? 'application/pdf' : 'image')
     }] : [],
     createdAt: doc.fecha_solicitud,
     folio

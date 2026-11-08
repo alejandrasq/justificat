@@ -1,8 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
+const crypto = require('crypto');
 const path = require('path');
 const fs = require('fs');
+const {
+  cloudinary,
+  decodeCloudinaryReceipt,
+  deleteReceipt,
+  encodeCloudinaryReceipt,
+  isCloudinaryConfigured,
+  uploadReceipt
+} = require('../utils/cloudinary');
 const SolicitudJustificante = require('../models/SolicitudJustificante');
 const JustificanteOficial = require('../models/JustificanteOficial');
 const { requireAuth, requireRole, requireSameOrigin } = require('../middleware/auth');
@@ -47,16 +56,16 @@ if (!fs.existsSync(uploadDir)) {
 }
 
 // Configuración de Multer
-const storage = multer.diskStorage({
+const diskStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
     cb(null, uniqueSuffix + path.extname(file.originalname));
   }
 });
 
 const upload = multer({
-  storage,
+  storage: isCloudinaryConfigured ? multer.memoryStorage() : diskStorage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
@@ -70,6 +79,7 @@ const upload = multer({
 
 // Enviar solicitud de justificante
 router.post('/', requireAuth, requireRole('student'), requireSameOrigin, upload.single('document'), async (req, res) => {
+  let uploadedReceipt = null;
   try {
     const { startDate, endDate, reason, description } = req.body;
     const allowedReasons = ['Médico', 'Familiar', 'Personal', 'Legal', 'Otro'];
@@ -85,8 +95,18 @@ router.post('/', requireAuth, requireRole('student'), requireSameOrigin, upload.
       || typeof description !== 'string' || !description.trim()
       || !file
     ) {
-      if (file) fs.unlink(file.path, () => {});
+      if (file?.path) fs.unlink(file.path, (error) => {
+        if (error) console.error('No se pudo limpiar el comprobante temporal:', error);
+      });
       return res.status(422).json({ error: 'Revisa las fechas, el motivo, la descripción y adjunta un comprobante.' });
+    }
+
+    let receiptPath;
+    if (isCloudinaryConfigured) {
+      uploadedReceipt = await uploadReceipt(file);
+      receiptPath = encodeCloudinaryReceipt(uploadedReceipt);
+    } else {
+      receiptPath = `/uploads/${file.filename}`;
     }
 
     const newJustification = new SolicitudJustificante({
@@ -95,15 +115,26 @@ router.post('/', requireAuth, requireRole('student'), requireSameOrigin, upload.
       fecha_fin: new Date(`${endDate}T23:59:59.999Z`),
       motivo: reason,
       descripcion: description.trim(),
-      receta: `/uploads/${file.filename}`
+      receta: receiptPath
     });
 
     await newJustification.save();
+    uploadedReceipt = null;
     const populated = await newJustification.populate('id_alumno');
     res.status(201).json({ message: 'Solicitud enviada con éxito', justification: publicRequest(populated) });
   } catch (error) {
-    if (req.file) fs.unlink(req.file.path, () => {});
-    res.status(500).json({ error: error.message });
+    if (req.file?.path) fs.unlink(req.file.path, (cleanupError) => {
+      if (cleanupError) console.error('No se pudo limpiar el comprobante temporal:', cleanupError);
+    });
+    if (uploadedReceipt) {
+      try {
+        await deleteReceipt(uploadedReceipt);
+      } catch (cleanupError) {
+        console.error('No se pudo limpiar el comprobante de Cloudinary:', cleanupError);
+      }
+    }
+    console.error('Error al guardar la solicitud:', error);
+    res.status(500).json({ error: 'No se pudo guardar la solicitud y su comprobante.' });
   }
 });
 
@@ -135,12 +166,51 @@ router.get('/', requireAuth, requireRole('staff'), async (req, res) => {
 
 router.get('/attachments/:filename', requireAuth, requireRole('staff'), async (req, res) => {
   const { filename } = req.params;
+  if (filename.startsWith('cloudinary-')) {
+    const receipt = decodeCloudinaryReceipt(filename);
+    if (!receipt || !isCloudinaryConfigured) {
+      return res.status(404).json({ error: 'Archivo no encontrado.' });
+    }
+
+    try {
+      const storedReceipt = `cloudinary:${filename.slice('cloudinary-'.length)}`;
+      const isReferenced = await SolicitudJustificante.exists({ receta: storedReceipt });
+      if (!isReferenced) return res.status(404).json({ error: 'Archivo no encontrado.' });
+
+      const deliveryOptions = {
+        resource_type: receipt.resourceType,
+        type: 'authenticated',
+        version: receipt.version,
+        sign_url: true,
+        secure: true
+      };
+      if (receipt.resourceType !== 'raw') deliveryOptions.format = receipt.format;
+      const signedUrl = cloudinary.url(receipt.publicId, deliveryOptions);
+      const response = await fetch(signedUrl);
+      if (!response.ok) {
+        console.error(`Cloudinary respondió ${response.status} al recuperar un comprobante.`);
+        return res.status(502).json({ error: 'No se pudo recuperar el comprobante.' });
+      }
+
+      res.set('Content-Type', receipt.mimetype);
+      res.set('Content-Disposition', `inline; filename="${path.basename(receipt.originalName).replace(/["\\\r\n]/g, '_')}"`);
+      res.set('X-Content-Type-Options', 'nosniff');
+      res.set('Cache-Control', 'private, no-store');
+      return res.send(Buffer.from(await response.arrayBuffer()));
+    } catch (error) {
+      console.error('Error al recuperar comprobante de Cloudinary:', error);
+      return res.status(502).json({ error: 'No se pudo recuperar el comprobante.' });
+    }
+  }
+
   if (!/^\d+-\d+\.(?:jpe?g|png|pdf)$/i.test(filename)) {
     return res.status(404).json({ error: 'Archivo no encontrado.' });
   }
 
   const filePath = path.join(uploadDir, filename);
   res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('Cache-Control', 'private, no-store');
   res.sendFile(filePath, (error) => {
     if (error && !res.headersSent) {
       res.status(error.statusCode === 404 ? 404 : 500).json({

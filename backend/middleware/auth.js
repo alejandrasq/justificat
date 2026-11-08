@@ -7,7 +7,9 @@ const { publicUser } = require('../utils/serializers');
 const COOKIE_NAME = 'jutificat_session';
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
 const SESSION_SECRET = process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex');
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN
+  || process.env.RENDER_EXTERNAL_URL
+  || 'http://localhost:5173';
 const secureCookie = process.env.NODE_ENV === 'production';
 
 function isAllowedFrontendOrigin(origin) {
