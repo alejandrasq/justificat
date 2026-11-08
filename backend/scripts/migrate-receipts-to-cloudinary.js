@@ -20,6 +20,19 @@ const mimeTypes = {
   '.pdf': 'application/pdf'
 };
 
+function safeErrorDetails(error) {
+  let message = error?.message || 'Error desconocido.';
+  for (const secret of [
+    process.env.MONGO_URI,
+    process.env.CLOUDINARY_API_KEY,
+    process.env.CLOUDINARY_API_SECRET
+  ]) {
+    if (secret) message = message.split(secret).join('[oculto]');
+  }
+  message = message.replace(/mongodb(?:\+srv)?:\/\/\S+/gi, '[URI de MongoDB oculta]');
+  return `${error?.name || 'Error'}${error?.code ? ` (${error.code})` : ''}: ${message}`;
+}
+
 async function main() {
   if (!process.env.MONGO_URI) {
     throw new Error('Configura MONGO_URI en backend/.env antes de migrar.');
@@ -41,7 +54,7 @@ async function main() {
       const filename = path.basename(request.receta);
       const extension = path.extname(filename).toLowerCase();
       const filePath = path.join(uploadDir, filename);
-      if (!/^\d+-[a-f0-9]+\.(?:jpe?g|png|pdf)$/i.test(filename) || !mimeTypes[extension] || !fs.existsSync(filePath)) {
+      if (!/^\d+-(?:\d+|[a-f0-9]+)\.(?:jpe?g|png|pdf)$/i.test(filename) || !mimeTypes[extension] || !fs.existsSync(filePath)) {
         missing += 1;
         continue;
       }
@@ -68,12 +81,14 @@ async function main() {
           continue;
         }
         migrated += 1;
-      } catch {
+      } catch (error) {
+        console.error(`Error al migrar el comprobante ${request._id}: ${safeErrorDetails(error)}`);
         if (uploadedReceipt) {
           try {
             await deleteReceipt(uploadedReceipt);
-          } catch {
+          } catch (cleanupError) {
             console.error('No se pudo limpiar un archivo temporal de Cloudinary.');
+            console.error(safeErrorDetails(cleanupError));
           }
         }
         failed += 1;
@@ -91,8 +106,9 @@ async function main() {
   if (failed > 0) process.exitCode = 1;
 }
 
-main().catch(async () => {
+main().catch(async (error) => {
   console.error('No se pudo completar la migración de comprobantes a Cloudinary.');
+  console.error(safeErrorDetails(error));
   await mongoose.disconnect();
   process.exitCode = 1;
 });
