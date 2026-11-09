@@ -139,7 +139,7 @@ export default function Register() {
                 </div>
                 <div>
                   <label htmlFor="register-group">Grupo</label>
-                  <select id="register-group" name="grupo" required value={formData.grupo} onChange={handleChange}>
+                  <select id="register-group" name="grupo" translate="no" required value={formData.grupo} onChange={handleChange}>
                     <option value="" disabled>Selecciona Grupo</option>
                     <option value="A">A</option><option value="B">B</option><option value="C">C</option>
                     <option value="D">D</option><option value="E">E</option><option value="F">F</option>
