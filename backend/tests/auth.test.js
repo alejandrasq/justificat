@@ -32,21 +32,28 @@ test('institutional email validation only accepts the school domain', () => {
   assert.equal(isInstitutionalEmail('student name@cbtis258.edu.mx'), false);
 });
 
-test('student registration email accepts only the configured suffixes', () => {
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.alp@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.alh@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.alm@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.ala@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.alc@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.al@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.aia@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.acb@cbtis258.edu.mx'), true);
-  assert.equal(isValidStudentRegistrationEmail('PAULA.SANTES.ALP@CBTIS258.EDU.MX'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.xyz@cbtis258.edu.mx'), false);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.alpx@cbtis258.edu.mx'), false);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.a1p@cbtis258.edu.mx'), false);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.extra.alp@cbtis258.edu.mx'), false);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.alp@example.edu'), false);
+test('student registration email suffix must match the selected career', () => {
+  const suffixesByCareer = [
+    ['Programación', 'alp'],
+    ['Mecánica Industrial', 'alm'],
+    ['Servicios de Hospedaje', 'alh'],
+    ['Prep. Alimentos y Bebidas', 'ala'],
+    ['Ciberseguridad', 'acb'],
+    ['Inteligencia Artificial', 'aia'],
+    ['Logística', 'al'],
+    ['Contabilidad', 'alc']
+  ];
+
+  for (const [career, suffix] of suffixesByCareer) {
+    assert.equal(isValidStudentRegistrationEmail(`paula.santes.${suffix}@cbtis258.edu.mx`, career), true);
+  }
+
+  assert.equal(isValidStudentRegistrationEmail('PAULA.SANTES.ALP@CBTIS258.EDU.MX', 'Programación'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alp@cbtis258.edu.mx', 'Mecánica Industrial'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.xyz@cbtis258.edu.mx', 'Programación'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.a1p@cbtis258.edu.mx', 'Programación'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.extra.alp@cbtis258.edu.mx', 'Programación'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alp@example.edu', 'Programación'), false);
 });
 
 test('staff accounts accept Gmail addresses and the legacy justificat account', () => {

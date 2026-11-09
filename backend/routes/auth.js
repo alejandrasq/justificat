@@ -44,8 +44,8 @@ router.post('/register', async (req, res) => {
       return res.status(422).json({ error: 'Revisa los datos escolares: completa todos los campos.' });
     }
 
-    if (!isValidStudentRegistrationEmail(account)) {
-      return res.status(422).json({ error: 'El correo debe tener el formato nombre.apellido.abc@cbtis258.edu.mx, con exactamente 3 letras al final.' });
+    if (!isValidStudentRegistrationEmail(account, career.trim())) {
+      return res.status(422).json({ error: 'El código final del correo debe corresponder a la especialidad seleccionada.' });
     }
 
     if (!isValidPersonName(fullName)) {

@@ -3,6 +3,17 @@ import { Link, useNavigate } from 'react-router-dom';
 import api from '../api';
 import SchoolIdentity from '../components/SchoolIdentity';
 
+const EMAIL_SUFFIX_BY_CAREER = {
+  'Programación': 'alp',
+  'Mecánica Industrial': 'alm',
+  'Servicios de Hospedaje': 'alh',
+  'Prep. Alimentos y Bebidas': 'ala',
+  Ciberseguridad: 'acb',
+  'Inteligencia Artificial': 'aia',
+  Logística: 'al',
+  Contabilidad: 'alc'
+};
+
 export default function Register() {
   const [formData, setFormData] = useState({
     nombre: '',
@@ -34,8 +45,10 @@ export default function Register() {
     e.preventDefault();
     setMessage({ text: '', isError: false });
 
-    if (!/^[a-z]+\.[a-z]+\.(?:alp|alh|alm|ala|alc|al|aia|acb)@cbtis258\.edu\.mx$/i.test(formData.cuenta.trim())) {
-      setMessage({ text: 'El tercer segmento debe ser alp, alh, alm, ala, alc, al, aia o acb.', isError: true });
+    const emailParts = formData.cuenta.trim().match(/^[a-z]+\.[a-z]+\.([a-z]+)@cbtis258\.edu\.mx$/i);
+    const expectedEmailSuffix = EMAIL_SUFFIX_BY_CAREER[formData.carrera];
+    if (!emailParts || !expectedEmailSuffix || emailParts[1].toLowerCase() !== expectedEmailSuffix) {
+      setMessage({ text: 'El código final del correo debe corresponder a la especialidad seleccionada.', isError: true });
       return;
     }
 
@@ -160,7 +173,11 @@ export default function Register() {
               <div className="field">
                 <label htmlFor="register-account">Correo institucional</label>
                 <input id="register-account" name="cuenta" type="email" pattern="[A-Za-z]+\.[A-Za-z]+\.(alp|alh|alm|ala|alc|al|aia|acb)@cbtis258\.edu\.mx" title="El tercer segmento debe ser alp, alh, alm, ala, alc, al, aia o acb." maxLength="254" autoCapitalize="none" spellCheck="false" required value={formData.cuenta} onChange={handleChange} />
-                <small className="field-hint">Códigos permitidos al final: alp, alh, alm, ala, alc, al, aia o acb.</small>
+                <small className="field-hint">
+                  {expectedEmailSuffix
+                    ? `Para ${formData.carrera}, el correo debe terminar en .${expectedEmailSuffix}@cbtis258.edu.mx.`
+                    : 'Selecciona tu especialidad para conocer el código final del correo.'}
+                </small>
               </div>
 
               <div className="field">
