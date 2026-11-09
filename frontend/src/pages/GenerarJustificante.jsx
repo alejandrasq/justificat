@@ -279,7 +279,7 @@ export default function GenerarJustificante() {
 
               <section className="issue-dates">
                 <p><strong>FECHA DE ELABORACIÓN:</strong> <span>{issueDate}</span></p>
-                <p className="absence-period"><strong>FECHA(S) A JUSTIFICAR:</strong> <span className="date-value">{formatDate(formData.startDate)} al {formatDate(formData.endDate)}</span></p>
+                <p className="absence-period"><strong>FECHA(S) A JUSTIFICAR:</strong> <span className="date-value">{formatDate(formData.startDate)}{formData.startDate !== formData.endDate && ` al ${formatDate(formData.endDate)}`}</span></p>
               </section>
               <br></br>
              
