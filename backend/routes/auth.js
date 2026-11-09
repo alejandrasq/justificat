@@ -45,7 +45,7 @@ router.post('/register', async (req, res) => {
     }
 
     if (!isValidStudentRegistrationEmail(account, career.trim())) {
-      return res.status(422).json({ error: 'El código final del correo debe corresponder a la especialidad seleccionada.' });
+      return res.status(422).json({ error: 'El correo ingresado no tiene el formato correcto para la especialidad seleccionada.' });
     }
 
     if (!isValidPersonName(fullName)) {

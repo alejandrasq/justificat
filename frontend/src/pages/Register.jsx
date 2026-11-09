@@ -48,7 +48,7 @@ export default function Register() {
     const emailParts = formData.cuenta.trim().match(/^[a-z]+\.[a-z]+\.([a-z]+)@cbtis258\.edu\.mx$/i);
     const expectedEmailSuffix = EMAIL_SUFFIX_BY_CAREER[formData.carrera];
     if (!emailParts || !expectedEmailSuffix || emailParts[1].toLowerCase() !== expectedEmailSuffix) {
-      setMessage({ text: 'El código final del correo debe corresponder a la especialidad seleccionada.', isError: true });
+      setMessage({ text: 'El correo ingresado no tiene el formato correcto para la especialidad seleccionada.', isError: true });
       return;
     }
 
