@@ -1,5 +1,5 @@
 const INSTITUTIONAL_EMAIL_PATTERN = /^[^\s@]+@cbtis258\.edu\.mx$/i;
-const STUDENT_REGISTRATION_EMAIL_PATTERN = /^[a-z]+\.[a-z]+\.[a-z]{3}@cbtis258\.edu\.mx$/i;
+const STUDENT_REGISTRATION_EMAIL_PATTERN = /^[a-z]+\.[a-z]+\.(?:alp|alh|alm|ala|alc|al|aia|acb)@cbtis258\.edu\.mx$/i;
 const GMAIL_PATTERN = /^[^\s@]+@gmail\.com$/i;
 
 function isInstitutionalEmail(value) {

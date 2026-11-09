@@ -26,7 +26,7 @@ export default function Register() {
     const { name } = e.target;
     const value = name === 'matricula'
       ? e.target.value.replace(/\D/g, '').slice(0, 14)
-      : e.target.value;
+      : name === 'cuenta' ? e.target.value.toLowerCase() : e.target.value;
     setFormData({ ...formData, [e.target.name]: value });
   };
 
@@ -34,8 +34,8 @@ export default function Register() {
     e.preventDefault();
     setMessage({ text: '', isError: false });
 
-    if (!/^[a-z]+\.[a-z]+\.[a-z]{3}@cbtis258\.edu\.mx$/i.test(formData.cuenta.trim())) {
-      setMessage({ text: 'Usa el formato nombre.apellido.abc@cbtis258.edu.mx; el último segmento debe tener 3 letras.', isError: true });
+    if (!/^[a-z]+\.[a-z]+\.(?:alp|alh|alm|ala|alc|al|aia|acb)@cbtis258\.edu\.mx$/i.test(formData.cuenta.trim())) {
+      setMessage({ text: 'El tercer segmento debe ser alp, alh, alm, ala, alc, al, aia o acb.', isError: true });
       return;
     }
 
@@ -159,8 +159,8 @@ export default function Register() {
 
               <div className="field">
                 <label htmlFor="register-account">Correo institucional</label>
-                <input id="register-account" name="cuenta" type="email" pattern="[A-Za-z]+\.[A-Za-z]+\.[A-Za-z]{3}@cbtis258\.edu\.mx" title="Formato: nombre.apellido.abc@cbtis258.edu.mx; escribe exactamente 3 letras después del segundo punto." maxLength="254" autoCapitalize="none" spellCheck="false" required value={formData.cuenta} onChange={handleChange} />
-                <small className="field-hint">Formato: nombre.apellido.abc@cbtis258.edu.mx (3 letras al final).</small>
+                <input id="register-account" name="cuenta" type="email" pattern="[A-Za-z]+\.[A-Za-z]+\.(alp|alh|alm|ala|alc|al|aia|acb)@cbtis258\.edu\.mx" title="El tercer segmento debe ser alp, alh, alm, ala, alc, al, aia o acb." maxLength="254" autoCapitalize="none" spellCheck="false" required value={formData.cuenta} onChange={handleChange} />
+                <small className="field-hint">Códigos permitidos al final: alp, alh, alm, ala, alc, al, aia o acb.</small>
               </div>
 
               <div className="field">

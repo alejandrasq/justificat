@@ -32,10 +32,17 @@ test('institutional email validation only accepts the school domain', () => {
   assert.equal(isInstitutionalEmail('student name@cbtis258.edu.mx'), false);
 });
 
-test('student registration email requires name, surname, and a three-letter suffix', () => {
+test('student registration email accepts only the configured suffixes', () => {
   assert.equal(isValidStudentRegistrationEmail('paula.santes.alp@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alh@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alm@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.ala@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alc@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.al@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.aia@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.acb@cbtis258.edu.mx'), true);
   assert.equal(isValidStudentRegistrationEmail('PAULA.SANTES.ALP@CBTIS258.EDU.MX'), true);
-  assert.equal(isValidStudentRegistrationEmail('paula.santes.al@cbtis258.edu.mx'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.xyz@cbtis258.edu.mx'), false);
   assert.equal(isValidStudentRegistrationEmail('paula.santes.alpx@cbtis258.edu.mx'), false);
   assert.equal(isValidStudentRegistrationEmail('paula.santes.a1p@cbtis258.edu.mx'), false);
   assert.equal(isValidStudentRegistrationEmail('paula.santes.extra.alp@cbtis258.edu.mx'), false);
