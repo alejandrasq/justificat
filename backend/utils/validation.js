@@ -1,8 +1,13 @@
 const INSTITUTIONAL_EMAIL_PATTERN = /^[^\s@]+@cbtis258\.edu\.mx$/i;
+const STUDENT_REGISTRATION_EMAIL_PATTERN = /^[a-z]+\.[a-z]+\.[a-z]{3}@cbtis258\.edu\.mx$/i;
 const GMAIL_PATTERN = /^[^\s@]+@gmail\.com$/i;
 
 function isInstitutionalEmail(value) {
   return typeof value === 'string' && INSTITUTIONAL_EMAIL_PATTERN.test(value.trim());
+}
+
+function isValidStudentRegistrationEmail(value) {
+  return typeof value === 'string' && STUDENT_REGISTRATION_EMAIL_PATTERN.test(value.trim());
 }
 
 function isAllowedStaffAccount(value) {
@@ -23,6 +28,7 @@ function isValidPersonName(value) {
 module.exports = {
   isAllowedStaffAccount,
   isInstitutionalEmail,
+  isValidStudentRegistrationEmail,
   isValidPersonName,
   normalizePersonName
 };

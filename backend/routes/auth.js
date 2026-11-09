@@ -6,7 +6,7 @@ const PersonalOrientacion = require('../models/PersonalOrientacion');
 const SolicitudJustificante = require('../models/SolicitudJustificante');
 const JustificanteOficial = require('../models/JustificanteOficial');
 const { publicStudent, publicUser } = require('../utils/serializers');
-const { isInstitutionalEmail, isValidPersonName, normalizePersonName } = require('../utils/validation');
+const { isInstitutionalEmail, isValidStudentRegistrationEmail, isValidPersonName, normalizePersonName } = require('../utils/validation');
 const {
   clearSessionCookie,
   requireAuth,
@@ -44,8 +44,8 @@ router.post('/register', async (req, res) => {
       return res.status(422).json({ error: 'Revisa los datos escolares: completa todos los campos.' });
     }
 
-    if (!isInstitutionalEmail(account)) {
-      return res.status(422).json({ error: 'El correo debe terminar en @cbtis258.edu.mx.' });
+    if (!isValidStudentRegistrationEmail(account)) {
+      return res.status(422).json({ error: 'El correo debe tener el formato nombre.apellido.abc@cbtis258.edu.mx, con exactamente 3 letras al final.' });
     }
 
     if (!isValidPersonName(fullName)) {

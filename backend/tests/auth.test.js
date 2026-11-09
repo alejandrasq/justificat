@@ -19,6 +19,7 @@ const { folioFromSequence } = require('../utils/folio');
 const {
   isAllowedStaffAccount,
   isInstitutionalEmail,
+  isValidStudentRegistrationEmail,
   isValidPersonName,
   normalizePersonName
 } = require('../utils/validation');
@@ -29,6 +30,16 @@ test('institutional email validation only accepts the school domain', () => {
   assert.equal(isInstitutionalEmail('student@example.edu'), false);
   assert.equal(isInstitutionalEmail('student@cbtis258.edu.mx.example.com'), false);
   assert.equal(isInstitutionalEmail('student name@cbtis258.edu.mx'), false);
+});
+
+test('student registration email requires name, surname, and a three-letter suffix', () => {
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alp@cbtis258.edu.mx'), true);
+  assert.equal(isValidStudentRegistrationEmail('PAULA.SANTES.ALP@CBTIS258.EDU.MX'), true);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.al@cbtis258.edu.mx'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alpx@cbtis258.edu.mx'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.a1p@cbtis258.edu.mx'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.extra.alp@cbtis258.edu.mx'), false);
+  assert.equal(isValidStudentRegistrationEmail('paula.santes.alp@example.edu'), false);
 });
 
 test('staff accounts accept Gmail addresses and the legacy justificat account', () => {

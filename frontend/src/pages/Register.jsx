@@ -34,8 +34,8 @@ export default function Register() {
     e.preventDefault();
     setMessage({ text: '', isError: false });
 
-    if (!/^[^\s@]+@cbtis258\.edu\.mx$/i.test(formData.cuenta.trim())) {
-      setMessage({ text: 'El correo debe terminar en @cbtis258.edu.mx.', isError: true });
+    if (!/^[a-z]+\.[a-z]+\.[a-z]{3}@cbtis258\.edu\.mx$/i.test(formData.cuenta.trim())) {
+      setMessage({ text: 'Usa el formato nombre.apellido.abc@cbtis258.edu.mx; el último segmento debe tener 3 letras.', isError: true });
       return;
     }
 
@@ -159,8 +159,8 @@ export default function Register() {
 
               <div className="field">
                 <label htmlFor="register-account">Correo institucional</label>
-                <input id="register-account" name="cuenta" type="email" pattern="[^@\s]+@cbtis258\.edu\.mx" title="Usa un correo con dominio @cbtis258.edu.mx." maxLength="254" required value={formData.cuenta} onChange={handleChange} />
-                <small className="field-hint">Usa tu correo @cbtis258.edu.mx para iniciar sesión.</small>
+                <input id="register-account" name="cuenta" type="email" pattern="[A-Za-z]+\.[A-Za-z]+\.[A-Za-z]{3}@cbtis258\.edu\.mx" title="Formato: nombre.apellido.abc@cbtis258.edu.mx; escribe exactamente 3 letras después del segundo punto." maxLength="254" autoCapitalize="none" spellCheck="false" required value={formData.cuenta} onChange={handleChange} />
+                <small className="field-hint">Formato: nombre.apellido.abc@cbtis258.edu.mx (3 letras al final).</small>
               </div>
 
               <div className="field">
