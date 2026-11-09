@@ -137,13 +137,13 @@ export default function Register() {
                     <option value="4">4</option><option value="5">5</option><option value="6">6</option>
                   </select>
                 </div>
-                <div>
+                <div className="notranslate" translate="no">
                   <label htmlFor="register-group">Grupo</label>
-                  <select id="register-group" name="grupo" translate="no" required value={formData.grupo} onChange={handleChange}>
-                    <option value="" disabled>Selecciona Grupo</option>
-                    <option value="A">A</option><option value="B">B</option><option value="C">C</option>
-                    <option value="D">D</option><option value="E">E</option><option value="F">F</option>
-                    <option value="H">H</option><option value="I">I</option><option value="J">J</option>
+                  <select id="register-group" name="grupo" className="notranslate" translate="no" required value={formData.grupo} onChange={handleChange}>
+                    <option className="notranslate" translate="no" value="" disabled>Selecciona Grupo</option>
+                    <option className="notranslate" translate="no" value="A">A</option><option className="notranslate" translate="no" value="B">B</option><option className="notranslate" translate="no" value="C">C</option>
+                    <option className="notranslate" translate="no" value="D">D</option><option className="notranslate" translate="no" value="E">E</option><option className="notranslate" translate="no" value="F">F</option>
+                    <option className="notranslate" translate="no" value="H">H</option><option className="notranslate" translate="no" value="I">I</option><option className="notranslate" translate="no" value="J">J</option>
                   </select>
                 </div>
               </div>
