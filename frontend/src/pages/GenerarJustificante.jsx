@@ -131,6 +131,11 @@ export default function GenerarJustificante() {
               <path d="M17 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </Link>
+          <Link className="nav-link" to="/encargado?tab=alumnos" title="Eliminar alumnos" aria-label="Ir a eliminar alumnos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 6h18M8 6V4h8v2m3 0-.8 14H5.8L5 6m5 4v6m4-6v6"/>
+            </svg>
+          </Link>
           <Link
             className="nav-link student-profile-link"
             to="/encargado?tab=perfil"
