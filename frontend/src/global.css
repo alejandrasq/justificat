@@ -2218,6 +2218,7 @@ input[readonly] {
     .school-gallery { gap: 9px; }
     .school-photo-card { padding: 5px 5px 7px; }
     .school-brand { display: none; }
+    .student-history > .request-empty { padding: 0; }
     .login-panel { min-height: 0; }
     .login-content { width: min(100%, 460px); }
 }
