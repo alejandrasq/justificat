@@ -99,6 +99,26 @@ export default function Encargado() {
     setTimeout(() => setToast({ text: '', isError: false }), 5000);
   }, []);
 
+  const handleEvidenceClick = async (filename) => {
+    try {
+      const { data } = await api.get(`/justifications/attachments/${encodeURIComponent(filename)}`, {
+        responseType: 'blob'
+      });
+      setSelectedEvidence({
+        url: URL.createObjectURL(data),
+        isPdf: /\.pdf$/i.test(filename)
+      });
+    } catch {
+      showToast('No se pudo cargar el comprobante adjunto.', true);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (selectedEvidence?.url) URL.revokeObjectURL(selectedEvidence.url);
+    };
+  }, [selectedEvidence]);
+
   const loadData = useCallback(async () => {
     try {
       const [resRequests, resStudents] = await Promise.all([
@@ -544,9 +564,7 @@ export default function Encargado() {
                         <button
                           className="evidence-link"
                           type="button"
-                          onClick={() => setSelectedEvidence(api.getUri({
-                            url: `/justifications/attachments/${encodeURIComponent(req.attachments[0].filename)}`
-                          }))}
+                          onClick={() => handleEvidenceClick(req.attachments[0].filename)}
                         >
                           Ver comprobante: {req.attachments[0].originalname}
                         </button>
@@ -926,10 +944,10 @@ export default function Encargado() {
               <h2>Comprobante adjunto</h2>
               <button className="dialog-close" type="button" onClick={() => setSelectedEvidence(null)}>×</button>
             </div>
-            {selectedEvidence.endsWith('.pdf') ? (
-              <iframe src={selectedEvidence} className="evidence-preview-document" title="PDF"></iframe>
+            {selectedEvidence.isPdf ? (
+              <iframe src={selectedEvidence.url} className="evidence-preview-document" title="PDF"></iframe>
             ) : (
-              <img src={selectedEvidence} className="evidence-preview-image" alt="Comprobante" />
+              <img src={selectedEvidence.url} className="evidence-preview-image" alt="Comprobante" />
             )}
           </div>
         </div>
