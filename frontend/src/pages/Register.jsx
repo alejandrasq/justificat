@@ -32,6 +32,7 @@ export default function Register() {
   const [message, setMessage] = useState({ text: '', isError: false });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const expectedEmailSuffix = EMAIL_SUFFIX_BY_CAREER[formData.carrera];
 
   const handleChange = (e) => {
     const { name } = e.target;
@@ -46,7 +47,6 @@ export default function Register() {
     setMessage({ text: '', isError: false });
 
     const emailParts = formData.cuenta.trim().match(/^[a-z]+\.[a-z]+\.([a-z]+)@cbtis258\.edu\.mx$/i);
-    const expectedEmailSuffix = EMAIL_SUFFIX_BY_CAREER[formData.carrera];
     if (!emailParts || !expectedEmailSuffix || emailParts[1].toLowerCase() !== expectedEmailSuffix) {
       setMessage({ text: 'El correo ingresado no tiene el formato correcto para la especialidad seleccionada.', isError: true });
       return;
