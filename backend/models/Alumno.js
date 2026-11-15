@@ -7,7 +7,7 @@ const alumnoSchema = new mongoose.Schema({
     required: true,
     unique: true,
     trim: true,
-    match: [/^[0-9]{1,14}$/, 'El número de control debe contener únicamente números y tener máximo 14 dígitos.']
+    match: [/^[0-9]{14}$/, 'El número de control debe contener exactamente 14 dígitos.']
   },
   semestre_grupo: { type: String, required: true, trim: true },
   especialidad: { type: String, required: true, trim: true },

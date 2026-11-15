@@ -21,7 +21,7 @@ const VALID_CAREERS = [
 ];
 const VALID_GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J'];
 const VALID_SHIFTS = ['Matutino', 'Vespertino'];
-const isValidStudentId = (value) => typeof value === 'string' && /^[0-9]{1,14}$/.test(value);
+const isValidStudentId = (value) => typeof value === 'string' && /^[0-9]{14}$/.test(value);
 const isValidShift = (value) => VALID_SHIFTS.includes(value);
 const isValidCareerAndGroup = (career, group) => (
   typeof career === 'string' && VALID_CAREERS.includes(career.trim())
@@ -53,7 +53,7 @@ router.post('/register', async (req, res) => {
     }
 
     if (!isValidStudentId(studentId)) {
-      return res.status(422).json({ error: 'El número de control debe contener únicamente números y tener máximo 14 dígitos.' });
+      return res.status(422).json({ error: 'El número de control debe contener exactamente 14 dígitos.' });
     }
     if (!isValidShift(shift)) {
       return res.status(422).json({ error: 'Selecciona un turno válido.' });
@@ -176,7 +176,7 @@ router.put('/profile', requireAuth, requireRole('student'), requireSameOrigin, a
       return res.status(422).json({ error: 'El nombre solo debe contener letras y espacios.' });
     }
     if (!isValidStudentId(studentId)) {
-      return res.status(422).json({ error: 'El número de control debe contener únicamente números y tener máximo 14 dígitos.' });
+      return res.status(422).json({ error: 'El número de control debe contener exactamente 14 dígitos.' });
     }
     if (!isValidShift(shift)) {
       return res.status(422).json({ error: 'Selecciona un turno válido.' });
@@ -359,7 +359,7 @@ router.put('/students/:id', requireAuth, requireRole('staff'), requireSameOrigin
     }
 
     if (!isValidStudentId(studentId)) {
-      return res.status(422).json({ error: 'El número de control debe contener únicamente números y tener máximo 14 dígitos.' });
+      return res.status(422).json({ error: 'El número de control debe contener exactamente 14 dígitos.' });
     }
 
     const semesterNumber = Number(semester);

@@ -123,7 +123,7 @@ export default function Register() {
 
               <div className="field">
                 <label htmlFor="register-student-id">Número de control</label>
-                <input id="register-student-id" name="matricula" type="text" inputMode="numeric" pattern="[0-9]{1,14}" maxLength="14" title="Escribe únicamente números, máximo 14 dígitos." required value={formData.matricula} onChange={handleChange} />
+                <input id="register-student-id" name="matricula" type="text" inputMode="numeric" pattern="[0-9]{14}" maxLength="14" title="Escribe exactamente 14 dígitos." required value={formData.matricula} onChange={handleChange} />
               </div>
 
               <div className="field">

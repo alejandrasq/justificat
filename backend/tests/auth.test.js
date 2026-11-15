@@ -208,7 +208,7 @@ test('student collection requires the fields shown in the target data model', as
   assert.equal(Alumno.collection.collectionName, 'alumnos');
 });
 
-test('student control number must contain 1 to 14 digits', async () => {
+test('student control number must contain exactly 14 digits', async () => {
   const createStudent = (studentId) => new Alumno({
     correo: 'student@example.edu',
     'contraseña': 'hashed-password',
@@ -219,6 +219,10 @@ test('student control number must contain 1 to 14 digits', async () => {
   });
 
   await assert.doesNotReject(createStudent('00123456789012').validate());
+  await assert.rejects(createStudent('1234567890123').validate(), (error) => {
+    assert.ok(error.errors.matricula);
+    return true;
+  });
   await assert.rejects(createStudent('123456789012345').validate(), (error) => {
     assert.ok(error.errors.matricula);
     return true;
@@ -234,7 +238,7 @@ test('students default to the morning shift and only accept configured shifts', 
     correo: `student-${shift || 'default'}@example.edu`,
     'contraseña': 'hashed-password',
     nombre: 'Estudiante',
-    matricula: '12345',
+    matricula: '12345678901234',
     semestre_grupo: '3-A',
     especialidad: 'Programación',
     ...(shift ? { turno: shift } : {})
@@ -253,7 +257,7 @@ test('student login data includes the shift and defaults older accounts to morni
     _id: new mongoose.Types.ObjectId(),
     correo: 'student@example.edu',
     nombre: 'Estudiante',
-    matricula: '12345',
+    matricula: '12345678901234',
     especialidad: 'Programación',
     semestre_grupo: '3-A'
   };
@@ -313,7 +317,7 @@ test('request serializer maps the MongoDB schema to the application view', () =>
     correo: 'student@example.edu',
     'contraseña': 'hashed-password',
     nombre: 'Estudiante',
-    matricula: '12345',
+    matricula: '12345678901234',
     especialidad: 'Programación',
     semestre_grupo: '3-A'
   });

@@ -171,8 +171,8 @@ export default function Encargado() {
       return;
     }
 
-    if (!/^[0-9]{1,14}$/.test(editingStudent.studentId || '')) {
-      showToast('El número de control debe contener únicamente números y tener máximo 14 dígitos.', true);
+    if (!/^[0-9]{14}$/.test(editingStudent.studentId || '')) {
+      showToast('El número de control debe tener exactamente 14 dígitos.', true);
       return;
     }
 
