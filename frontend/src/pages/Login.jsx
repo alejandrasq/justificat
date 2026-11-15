@@ -57,7 +57,7 @@ export default function Login() {
 
             <form className="login-card" id="login-form" onSubmit={handleSubmit}>
               <div className="field">
-                <label htmlFor="account">Correo institucional o cuenta</label>
+                <label htmlFor="account">Correo institucional o personal</label>
                 <input
                   id="account"
                   name="cuenta"
