@@ -12,4 +12,7 @@ const solicitudSchema = new mongoose.Schema({
   id_personal: { type: mongoose.Schema.Types.ObjectId, ref: 'PersonalOrientacion', default: null }
 }, { collection: 'solicitud_justificante', versionKey: false });
 
+solicitudSchema.index({ id_alumno: 1 });
+solicitudSchema.index({ estatus: 1, fecha_solicitud: -1 });
+
 module.exports = mongoose.model('SolicitudJustificante', solicitudSchema);

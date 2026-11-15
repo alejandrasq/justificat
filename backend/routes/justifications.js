@@ -14,9 +14,22 @@ const {
 } = require('../utils/cloudinary');
 const SolicitudJustificante = require('../models/SolicitudJustificante');
 const JustificanteOficial = require('../models/JustificanteOficial');
+const Alumno = require('../models/Alumno');
 const { requireAuth, requireRole, requireSameOrigin } = require('../middleware/auth');
 const { publicRequest } = require('../utils/serializers');
 const { folioFromSequence } = require('../utils/folio');
+const {
+  academicGroupPattern,
+  createSearchRegex,
+  parseListPagination,
+  surnameSortExpression
+} = require('../utils/listPagination');
+const VALID_CAREERS = [
+  'Programación', 'Mecánica Industrial', 'Prep. Alimentos y Bebidas', 'Contabilidad',
+  'Logística', 'Servicios de Hospedaje', 'Ciberseguridad', 'Inteligencia Artificial'
+];
+const VALID_GROUPS = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'J'];
+const VALID_SHIFTS = ['Matutino', 'Vespertino'];
 
 function officialRequestMatch(request) {
   return {
@@ -154,11 +167,92 @@ router.get('/user/:account', requireAuth, requireRole('student'), async (req, re
   }
 });
 
-// Obtener TODAS las solicitudes (para el encargado)
+// Obtener solicitudes paginadas para el encargado
 router.get('/', requireAuth, requireRole('staff'), async (req, res) => {
   try {
-    const requests = await SolicitudJustificante.find().populate('id_alumno').sort({ fecha_solicitud: -1 });
-    res.json(requests.map(publicRequest));
+    const pagination = parseListPagination(req.query);
+    const { search = '', career = '', semester = '', group = '', shift = '' } = req.query;
+    if (
+      !pagination
+      || typeof search !== 'string' || search.length > 100
+      || typeof career !== 'string' || typeof semester !== 'string'
+      || typeof group !== 'string' || typeof shift !== 'string'
+      || (career && !VALID_CAREERS.includes(career))
+      || (semester && !/^[1-6]$/.test(semester))
+      || (group && !VALID_GROUPS.includes(group))
+      || (shift && !VALID_SHIFTS.includes(shift))
+    ) {
+      return res.status(422).json({ error: 'Los filtros o la paginación de solicitudes no son válidos.' });
+    }
+
+    const conditions = [];
+    if (career) conditions.push({ '_student.especialidad': career });
+    if (semester || group) {
+      conditions.push({
+        '_student.semestre_grupo': new RegExp(academicGroupPattern(semester, group))
+      });
+    }
+    if (shift === 'Matutino') {
+      conditions.push({
+        $or: [
+          { '_student.turno': 'Matutino' },
+          { '_student.turno': { $exists: false } },
+          { '_student.turno': null },
+          { '_student.turno': '' }
+        ]
+      });
+    } else if (shift) {
+      conditions.push({ '_student.turno': shift });
+    }
+    if (search.trim()) {
+      const searchRegex = createSearchRegex(search);
+      conditions.push({
+        $or: [
+          { '_student.nombre': searchRegex },
+          { '_student.correo': searchRegex },
+          { '_student.matricula': searchRegex }
+        ]
+      });
+    }
+
+    const pipeline = [
+      { $match: { estatus: { $ne: 'APROBADO' } } },
+      {
+        $lookup: {
+          from: Alumno.collection.name,
+          localField: 'id_alumno',
+          foreignField: '_id',
+          as: '_student'
+        }
+      },
+      { $unwind: { path: '$_student', preserveNullAndEmptyArrays: true } },
+      ...(conditions.length ? [{ $match: { $and: conditions } }] : []),
+      { $addFields: { _nameSort: surnameSortExpression('$_student.nombre') } },
+      { $sort: { _nameSort: 1, fecha_solicitud: -1, _id: 1 } },
+      {
+        $facet: {
+          metadata: [{ $count: 'total' }],
+          data: [
+            { $skip: pagination.skip },
+            { $limit: pagination.pageSize },
+            { $project: { _nameSort: 0 } }
+          ]
+        }
+      }
+    ];
+    const [result] = await SolicitudJustificante.aggregate(pipeline)
+      .collation({ locale: 'es', strength: 1 })
+      .allowDiskUse(true);
+    const total = result.metadata[0]?.total || 0;
+    const totalPages = Math.ceil(total / pagination.pageSize);
+
+    res.json({
+      requests: result.data.map((request) => publicRequest({ ...request, id_alumno: request._student })),
+      page: Math.min(pagination.page, Math.max(totalPages, 1)),
+      pageSize: pagination.pageSize,
+      total,
+      totalPages
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

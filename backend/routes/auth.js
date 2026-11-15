@@ -8,6 +8,12 @@ const JustificanteOficial = require('../models/JustificanteOficial');
 const { publicStudent, publicUser } = require('../utils/serializers');
 const { isInstitutionalEmail, isValidStudentRegistrationEmail, isValidPersonName, normalizePersonName } = require('../utils/validation');
 const {
+  academicGroupPattern,
+  createSearchRegex,
+  parseListPagination,
+  surnameSortExpression
+} = require('../utils/listPagination');
+const {
   clearSessionCookie,
   requireAuth,
   requireRole,
@@ -301,8 +307,87 @@ router.post('/logout', requireSameOrigin, (req, res) => {
 // Obtener la lista de todos los alumnos registrados
 router.get('/students', requireAuth, requireRole('staff'), async (req, res) => {
   try {
-    const students = await Alumno.find().select('-contraseña').sort({ nombre: 1 });
-    res.json({ students: students.map(publicStudent) });
+    const pagination = parseListPagination(req.query);
+    const { search = '', career = '', semester = '', group = '', shift = '' } = req.query;
+    if (
+      !pagination
+      || typeof search !== 'string' || search.length > 100
+      || typeof career !== 'string' || typeof semester !== 'string'
+      || typeof group !== 'string' || typeof shift !== 'string'
+      || (career && !VALID_CAREERS.includes(career))
+      || (semester && !/^[1-6]$/.test(semester))
+      || (group && !VALID_GROUPS.includes(group))
+      || (shift && !VALID_SHIFTS.includes(shift))
+    ) {
+      return res.status(422).json({ error: 'Los filtros o la paginación de alumnos no son válidos.' });
+    }
+
+    const conditions = [];
+    if (career) conditions.push({ especialidad: career });
+    if (semester || group) {
+      conditions.push({ semestre_grupo: new RegExp(academicGroupPattern(semester, group)) });
+    }
+    if (shift === 'Matutino') {
+      conditions.push({
+        $or: [{ turno: 'Matutino' }, { turno: { $exists: false } }, { turno: null }, { turno: '' }]
+      });
+    } else if (shift) {
+      conditions.push({ turno: shift });
+    }
+    if (search.trim()) {
+      const searchRegex = createSearchRegex(search);
+      conditions.push({
+        $or: [{ nombre: searchRegex }, { correo: searchRegex }, { matricula: searchRegex }]
+      });
+    }
+    const filter = conditions.length ? { $and: conditions } : {};
+    const total = await Alumno.countDocuments(filter);
+    const totalPages = Math.ceil(total / pagination.pageSize);
+    const page = Math.min(pagination.page, Math.max(totalPages, 1));
+    const students = await Alumno.aggregate([
+      { $match: filter },
+      {
+        $addFields: {
+          _semesterSort: {
+            $convert: {
+              input: { $arrayElemAt: [{ $split: ['$semestre_grupo', '-'] }, 0] },
+              to: 'int',
+              onError: 99,
+              onNull: 99
+            }
+          },
+          _surnameSort: surnameSortExpression('$nombre')
+        }
+      },
+      { $sort: { _semesterSort: 1, especialidad: 1, _surnameSort: 1, _id: 1 } },
+      { $skip: (page - 1) * pagination.pageSize },
+      { $limit: pagination.pageSize },
+      {
+        $lookup: {
+          from: SolicitudJustificante.collection.name,
+          let: { studentId: '$_id' },
+          pipeline: [
+            { $match: { $expr: { $eq: ['$id_alumno', '$$studentId'] } } },
+            { $count: 'count' }
+          ],
+          as: '_requestCounts'
+        }
+      },
+      {
+        $addFields: {
+          requestCount: { $ifNull: [{ $arrayElemAt: ['$_requestCounts.count', 0] }, 0] }
+        }
+      },
+      { $project: { 'contraseña': 0, _semesterSort: 0, _surnameSort: 0, _requestCounts: 0 } }
+    ]).collation({ locale: 'es', strength: 1 }).allowDiskUse(true);
+
+    res.json({
+      students: students.map((student) => ({ ...publicStudent(student), requestCount: student.requestCount })),
+      page,
+      pageSize: pagination.pageSize,
+      total,
+      totalPages
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

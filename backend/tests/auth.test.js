@@ -17,6 +17,11 @@ const JustificanteOficial = require('../models/JustificanteOficial');
 const { publicRequest, publicUser } = require('../utils/serializers');
 const { folioFromSequence } = require('../utils/folio');
 const {
+  academicGroupPattern,
+  createSearchRegex,
+  parseListPagination
+} = require('../utils/listPagination');
+const {
   isAllowedStaffAccount,
   isInstitutionalEmail,
   isValidStudentRegistrationEmail,
@@ -73,6 +78,32 @@ test('person names allow only letters and spaces and are stored in uppercase', (
   assert.equal(isValidPersonName('Paula-Santes'), false);
   assert.equal(isValidPersonName(''), false);
   assert.equal(normalizePersonName('  María   José  '), 'MARÍA JOSÉ');
+});
+
+test('list pagination validates page sizes and protects against excessive offsets', () => {
+  assert.deepEqual(parseListPagination({}), { page: 1, pageSize: 25, skip: 0 });
+  assert.deepEqual(parseListPagination({ page: '3', pageSize: '50' }), {
+    page: 3,
+    pageSize: 50,
+    skip: 100
+  });
+  assert.equal(parseListPagination({ page: '0' }), null);
+  assert.equal(parseListPagination({ pageSize: '101' }), null);
+  assert.equal(parseListPagination({ page: '30000' }), null);
+});
+
+test('list search matches accented Spanish names and escapes regex characters', () => {
+  assert.equal(createSearchRegex('Quiñones').test('QUIÑONES'), true);
+  assert.equal(createSearchRegex('Quinones').test('Quiñones'), true);
+  assert.equal(createSearchRegex('Güemes').test('Guemes'), true);
+  assert.equal(createSearchRegex('a.b').test('a.b'), true);
+  assert.equal(createSearchRegex('a.b').test('axb'), false);
+});
+
+test('academic list filters construct patterns for semester and group', () => {
+  assert.equal(new RegExp(academicGroupPattern('3', 'A')).test('3-A'), true);
+  assert.equal(new RegExp(academicGroupPattern('3', '')).test('3-A'), true);
+  assert.equal(new RegExp(academicGroupPattern('', 'A')).test('3-A'), true);
 });
 
 test('session tokens verify for a valid user and expiry', () => {
@@ -206,6 +237,16 @@ test('student collection requires the fields shown in the target data model', as
     return true;
   });
   assert.equal(Alumno.collection.collectionName, 'alumnos');
+});
+
+test('student and request schemas declare indexes for paginated lookups', () => {
+  const studentIndexes = Alumno.schema.indexes().map(([fields]) => fields);
+  const requestIndexes = SolicitudJustificante.schema.indexes().map(([fields]) => fields);
+  assert.ok(studentIndexes.some((fields) => (
+    fields.especialidad === 1 && fields.semestre_grupo === 1 && fields.turno === 1
+  )));
+  assert.ok(requestIndexes.some((fields) => fields.id_alumno === 1));
+  assert.ok(requestIndexes.some((fields) => fields.estatus === 1 && fields.fecha_solicitud === -1));
 });
 
 test('student control number must contain exactly 14 digits', async () => {

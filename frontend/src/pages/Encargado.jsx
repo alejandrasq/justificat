@@ -24,20 +24,6 @@ function normalizeSearchText(value) {
   return value.toLocaleLowerCase('es-MX').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-function compareStudentsBySemesterCareerAndSurname(studentA, studentB) {
-  return Number(studentA.semester) - Number(studentB.semester)
-    || (studentA.career || '').localeCompare(
-      studentB.career || '',
-      'es-MX',
-      { sensitivity: 'base' }
-    )
-    || formatLastNamesFirst(studentA.fullName || '').localeCompare(
-      formatLastNamesFirst(studentB.fullName || ''),
-      'es-MX',
-      { sensitivity: 'base' }
-    );
-}
-
 function highlightRequestName(name, search) {
   const query = normalizeSearchText(search.trim());
   if (!query) return name;
@@ -75,6 +61,23 @@ function highlightRequestName(name, search) {
   );
 }
 
+function Pagination({ page, total, pageSize, onPageChange, label }) {
+  const totalPages = Math.ceil(total / pageSize);
+  if (totalPages <= 1) return null;
+
+  return (
+    <nav className="list-pagination" aria-label={`Paginación de ${label}`}>
+      <button type="button" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
+        Anterior
+      </button>
+      <span>Página {page} de {totalPages}</span>
+      <button type="button" disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}>
+        Siguiente
+      </button>
+    </nav>
+  );
+}
+
 export default function Encargado() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -92,15 +95,27 @@ export default function Encargado() {
   });
   const [profileSaving, setProfileSaving] = useState(false);
   const [requests, setRequests] = useState([]);
+  const [requestPage, setRequestPage] = useState(1);
+  const [requestTotal, setRequestTotal] = useState(0);
+  const [isRequestsLoading, setIsRequestsLoading] = useState(true);
   const [students, setStudents] = useState([]);
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentTotal, setStudentTotal] = useState(0);
+  const [isStudentsLoading, setIsStudentsLoading] = useState(true);
   const [studentSearch, setStudentSearch] = useState('');
   const [studentFilters, setStudentFilters] = useState({ career: '', semester: '', group: '', shift: '' });
   const [requestSearch, setRequestSearch] = useState('');
   const [requestFilters, setRequestFilters] = useState({ career: '', semester: '', group: '', shift: '' });
   const [bulkDeleteCriteria, setBulkDeleteCriteria] = useState({ semester: '', group: '', career: '', shift: '' });
+  const [bulkDeleteMatchingStudents, setBulkDeleteMatchingStudents] = useState([]);
+  const [bulkDeleteTotal, setBulkDeleteTotal] = useState(0);
+  const [bulkDeletePage, setBulkDeletePage] = useState(1);
+  const [isBulkPreviewLoading, setIsBulkPreviewLoading] = useState(false);
   const [bulkDeleteConfirmation, setBulkDeleteConfirmation] = useState(null);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isPreparingBulkDelete, setIsPreparingBulkDelete] = useState(false);
   const [bulkDeleteTyped, setBulkDeleteTyped] = useState('');
+  const [refreshKey, setRefreshKey] = useState(0);
   const [toast, setToast] = useState({ text: '', isError: false });
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
@@ -133,18 +148,98 @@ export default function Encargado() {
     };
   }, [selectedEvidence]);
 
-  const loadData = useCallback(async () => {
-    try {
-      const [resRequests, resStudents] = await Promise.all([
-        api.get('/justifications'),
-        api.get('/auth/students')
-      ]);
-      setRequests(resRequests.data || []);
-      setStudents(resStudents.data.students || []);
-    } catch {
-      showToast('Error al conectar con la base de datos.', true);
+  const loadData = useCallback(() => {
+    setRefreshKey((key) => key + 1);
+  }, []);
+
+  useEffect(() => {
+    if (isDashboardLoading || !['alumnos', 'borrar-grupos'].includes(activeTab)) return undefined;
+    let active = true;
+    const timer = setTimeout(async () => {
+      setIsStudentsLoading(true);
+      try {
+        const { data } = await api.get('/auth/students', {
+          params: {
+            search: studentSearch,
+            ...studentFilters,
+            page: studentPage,
+            pageSize: 25
+          }
+        });
+        if (!active) return;
+        setStudents(data.students || []);
+        setStudentTotal(data.total || 0);
+        if (data.page !== studentPage) setStudentPage(data.page);
+      } catch {
+        if (active) showToast('No se pudo cargar la lista de alumnos.', true);
+      } finally {
+        if (active) setIsStudentsLoading(false);
+      }
+    }, 250);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [isDashboardLoading, activeTab, studentSearch, studentFilters, studentPage, refreshKey, showToast]);
+
+  useEffect(() => {
+    if (isDashboardLoading || activeTab !== 'solicitudes') return undefined;
+    let active = true;
+    const timer = setTimeout(async () => {
+      setIsRequestsLoading(true);
+      try {
+        const { data } = await api.get('/justifications', {
+          params: {
+            search: requestSearch,
+            ...requestFilters,
+            page: requestPage,
+            pageSize: 25
+          }
+        });
+        if (!active) return;
+        setRequests(data.requests || []);
+        setRequestTotal(data.total || 0);
+        if (data.page !== requestPage) setRequestPage(data.page);
+      } catch {
+        if (active) showToast('No se pudo cargar la lista de solicitudes.', true);
+      } finally {
+        if (active) setIsRequestsLoading(false);
+      }
+    }, 250);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [isDashboardLoading, activeTab, requestSearch, requestFilters, requestPage, refreshKey, showToast]);
+
+  useEffect(() => {
+    const { semester, group, career, shift } = bulkDeleteCriteria;
+    if (isDashboardLoading || activeTab !== 'borrar-grupos' || !semester || !group || !career || !shift) {
+      return undefined;
     }
-  }, [showToast]);
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      setIsBulkPreviewLoading(true);
+      try {
+        const { data } = await api.get('/auth/students', {
+          params: { semester, group, career, shift, page: bulkDeletePage, pageSize: 25 }
+        });
+        if (!active) return;
+        setBulkDeleteMatchingStudents(data.students || []);
+        setBulkDeleteTotal(data.total || 0);
+        if (data.page !== bulkDeletePage) setBulkDeletePage(data.page);
+      } catch {
+        if (active) showToast('No se pudo cargar la vista previa del grupo.', true);
+      } finally {
+        if (active) setIsBulkPreviewLoading(false);
+      }
+    }, 150);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [isDashboardLoading, activeTab, bulkDeleteCriteria, bulkDeletePage, refreshKey, showToast]);
 
   useEffect(() => {
     let active = true;
@@ -211,16 +306,24 @@ export default function Encargado() {
     }
   };
 
-  const handleBulkDeleteRequest = (event) => {
+  const handleBulkDeleteRequest = async (event) => {
     event.preventDefault();
-    const matchingCount = students.filter((student) => (
-      Number(student.semester) === Number(bulkDeleteCriteria.semester)
-      && student.group === bulkDeleteCriteria.group
-      && student.career === bulkDeleteCriteria.career
-      && (student.shift || 'Matutino') === bulkDeleteCriteria.shift
-    )).length;
-    setBulkDeleteTyped('');
-    setBulkDeleteConfirmation({ ...bulkDeleteCriteria, matchingCount });
+    setIsPreparingBulkDelete(true);
+    try {
+      const { data } = await api.get('/auth/students', {
+        params: { ...bulkDeleteCriteria, page: 1, pageSize: 1 }
+      });
+      if (!data.total) {
+        showToast('No hay alumnos que coincidan con ese grupo.', true);
+        return;
+      }
+      setBulkDeleteTyped('');
+      setBulkDeleteConfirmation({ ...bulkDeleteCriteria, matchingCount: data.total });
+    } catch (error) {
+      showToast(error.response?.data?.error || 'No se pudo verificar el grupo seleccionado.', true);
+    } finally {
+      setIsPreparingBulkDelete(false);
+    }
   };
 
   const handleBulkDelete = async () => {
@@ -238,6 +341,10 @@ export default function Encargado() {
       setBulkDeleteConfirmation(null);
       setBulkDeleteCriteria({ semester: '', group: '', career: '', shift: '' });
       setBulkDeleteTyped('');
+      setBulkDeleteMatchingStudents([]);
+      setBulkDeleteTotal(0);
+      setBulkDeletePage(1);
+      setIsBulkPreviewLoading(false);
       showToast(
         `Se eliminaron ${data.deletedStudents} alumnos, ${data.deletedRequests} solicitudes y ${data.deletedJustifications} justificantes.`
       );
@@ -308,75 +415,48 @@ export default function Encargado() {
     rejected: 'Rechazado'
   }[status] || 'Pendiente');
 
-  const getRequestCount = (account) => requests.filter((r) => r.account === account).length;
-  const activeRequests = requests.filter((request) => request.status !== 'issued');
-  const filteredRequests = activeRequests.filter((request) => {
-    const searchValue = requestSearch.trim().toLocaleLowerCase('es-MX')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const searchableFields = [request.studentName, request.account, request.studentId]
-      .filter(Boolean)
-      .join(' ')
-      .toLocaleLowerCase('es-MX')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-
-    return (!searchValue || searchableFields.includes(searchValue))
-      && (!requestFilters.career || request.career === requestFilters.career)
-      && (!requestFilters.semester || String(request.semester) === requestFilters.semester)
-      && (!requestFilters.group || request.group === requestFilters.group)
-      && (!requestFilters.shift || (request.shift || 'Matutino') === requestFilters.shift);
-  }).sort((requestA, requestB) => (
-    formatLastNamesFirst(requestA.studentName || '').localeCompare(
-      formatLastNamesFirst(requestB.studentName || ''),
-      'es-MX',
-      { sensitivity: 'base' }
-    )
-  ));
+  const getRequestCount = (student) => Number(student.requestCount) || 0;
+  const filteredRequests = requests;
+  const filteredStudents = students;
   const hasRequestFilters = requestSearch.trim()
     || requestFilters.career || requestFilters.semester || requestFilters.group || requestFilters.shift;
   const updateRequestFilter = (event) => {
     setRequestFilters((filters) => ({ ...filters, [event.target.name]: event.target.value }));
+    setRequestPage(1);
   };
   const clearRequestFilters = () => {
     setRequestSearch('');
     setRequestFilters({ career: '', semester: '', group: '', shift: '' });
+    setRequestPage(1);
   };
-  const filteredStudents = students.filter((student) => {
-    const searchValue = studentSearch.trim().toLocaleLowerCase('es-MX')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const searchableFields = [student.fullName, student.account, student.studentId]
-      .filter(Boolean)
-      .join(' ')
-      .toLocaleLowerCase('es-MX')
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '');
-
-    return (!searchValue || searchableFields.includes(searchValue))
-      && (!studentFilters.career || student.career === studentFilters.career)
-      && (!studentFilters.semester || String(student.semester) === studentFilters.semester)
-      && (!studentFilters.group || student.group === studentFilters.group)
-      && (!studentFilters.shift || (student.shift || 'Matutino') === studentFilters.shift);
-  }).sort(compareStudentsBySemesterCareerAndSurname);
   const hasStudentFilters = studentSearch.trim()
     || studentFilters.career || studentFilters.semester || studentFilters.group || studentFilters.shift;
   const updateStudentFilter = (event) => {
     setStudentFilters((filters) => ({ ...filters, [event.target.name]: event.target.value }));
+    setStudentPage(1);
   };
   const clearStudentFilters = () => {
     setStudentSearch('');
     setStudentFilters({ career: '', semester: '', group: '', shift: '' });
+    setStudentPage(1);
+  };
+  const updateBulkDeleteCriteria = (event) => {
+    setBulkDeleteCriteria((criteria) => ({ ...criteria, [event.target.name]: event.target.value }));
+    setBulkDeletePage(1);
+    setBulkDeleteMatchingStudents([]);
+    setBulkDeleteTotal(0);
+    setIsBulkPreviewLoading(false);
+    setBulkDeleteConfirmation(null);
   };
   const clearBulkDeleteCriteria = () => {
     setBulkDeleteCriteria({ semester: '', group: '', career: '', shift: '' });
     setBulkDeleteConfirmation(null);
     setBulkDeleteTyped('');
+    setBulkDeleteMatchingStudents([]);
+    setBulkDeleteTotal(0);
+    setBulkDeletePage(1);
+    setIsBulkPreviewLoading(false);
   };
-  const bulkDeleteMatchingStudents = students.filter((student) => (
-    (!bulkDeleteCriteria.semester || Number(student.semester) === Number(bulkDeleteCriteria.semester))
-    && (!bulkDeleteCriteria.group || student.group === bulkDeleteCriteria.group)
-    && (!bulkDeleteCriteria.career || student.career === bulkDeleteCriteria.career)
-    && (!bulkDeleteCriteria.shift || (student.shift || 'Matutino') === bulkDeleteCriteria.shift)
-  )).sort(compareStudentsBySemesterCareerAndSurname);
   const hasBulkDeleteCriteria = bulkDeleteCriteria.semester
     || bulkDeleteCriteria.group || bulkDeleteCriteria.career || bulkDeleteCriteria.shift;
 
@@ -492,8 +572,12 @@ export default function Encargado() {
                       id="request-search"
                       type="text"
                       placeholder="Nombre, correo o matrícula"
+                      maxLength="100"
                       value={requestSearch}
-                      onChange={(event) => setRequestSearch(event.target.value)}
+                      onChange={(event) => {
+                        setRequestSearch(event.target.value);
+                        setRequestPage(1);
+                      }}
                     />
                   </div>
                   <div className="student-filter-field">
@@ -525,7 +609,7 @@ export default function Encargado() {
                     </select>
                   </div>
                   <div className="student-filter-summary" aria-live="polite">
-                    {filteredRequests.length} de {activeRequests.length} solicitudes
+                    Mostrando {filteredRequests.length} de {requestTotal} solicitudes
                     {hasRequestFilters && (
                       <button className="student-filter-clear" type="button" onClick={clearRequestFilters}>
                         Limpiar filtros
@@ -535,7 +619,9 @@ export default function Encargado() {
                 </div>
                 <section className="staff-section request-list-section">
                   <div className="staff-request-list">
-                    {filteredRequests.length === 0 ? (
+                    {isRequestsLoading ? (
+                      <p className="request-empty-result" role="status">Cargando solicitudes...</p>
+                    ) : filteredRequests.length === 0 ? (
                       <p className="request-empty-result">No se encontraron solicitudes con esos criterios.</p>
                     ) : filteredRequests.map((req) => (
                     <article className="staff-request" key={req._id}>
@@ -587,6 +673,13 @@ export default function Encargado() {
                     ))}
                   </div>
                 </section>
+                <Pagination
+                  page={requestPage}
+                  total={requestTotal}
+                  pageSize={25}
+                  onPageChange={setRequestPage}
+                  label="solicitudes"
+                />
                 </>
               )}
             </div>
@@ -613,8 +706,12 @@ export default function Encargado() {
                       id="student-search"
                       type="text"
                       placeholder="Nombre, correo o matrícula"
+                      maxLength="100"
                       value={studentSearch}
-                      onChange={(event) => setStudentSearch(event.target.value)}
+                      onChange={(event) => {
+                        setStudentSearch(event.target.value);
+                        setStudentPage(1);
+                      }}
                     />
                   </div>
                   <div className="student-filter-field">
@@ -650,7 +747,7 @@ export default function Encargado() {
                     </select>
                   </div>
                   <div className="student-filter-summary" aria-live="polite">
-                    {filteredStudents.length} de {students.length} alumnos
+                    Mostrando {filteredStudents.length} de {studentTotal} alumnos
                     {hasStudentFilters && (
                       <button className="student-filter-clear" type="button" onClick={clearStudentFilters}>
                         Limpiar filtros
@@ -674,12 +771,16 @@ export default function Encargado() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredStudents.length === 0 ? (
+                      {isStudentsLoading ? (
+                        <tr>
+                          <td className="student-empty-result" colSpan="8">Cargando alumnos...</td>
+                        </tr>
+                      ) : filteredStudents.length === 0 ? (
                         <tr>
                           <td className="student-empty-result" colSpan="8">No se encontraron alumnos con esos criterios.</td>
                         </tr>
                       ) : filteredStudents.map((student) => {
-                        const count = getRequestCount(student.account);
+                        const count = getRequestCount(student);
                         const risk = count >= 3 ? 'red' : count === 2 ? 'yellow' : count === 1 ? 'green' : 'none';
                         return (
                           <tr key={student._id} className={`risk-${risk}`}>
@@ -724,6 +825,13 @@ export default function Encargado() {
                     </table>
                   </div>
                 </section>
+                <Pagination
+                  page={studentPage}
+                  total={studentTotal}
+                  pageSize={25}
+                  onPageChange={setStudentPage}
+                  label="alumnos"
+                />
                 </>
               )}
             </div>
@@ -745,7 +853,8 @@ export default function Encargado() {
                     <select
                       id="bulk-delete-semester"
                       value={bulkDeleteCriteria.semester}
-                      onChange={(event) => setBulkDeleteCriteria((criteria) => ({ ...criteria, semester: event.target.value }))}
+                      name="semester"
+                      onChange={updateBulkDeleteCriteria}
                       required
                     >
                       <option value="" disabled>Selecciona semestre</option>
@@ -757,7 +866,8 @@ export default function Encargado() {
                     <select
                       id="bulk-delete-group"
                       value={bulkDeleteCriteria.group}
-                      onChange={(event) => setBulkDeleteCriteria((criteria) => ({ ...criteria, group: event.target.value }))}
+                      name="group"
+                      onChange={updateBulkDeleteCriteria}
                       required
                     >
                       <option value="" disabled>Selecciona grupo</option>
@@ -769,7 +879,8 @@ export default function Encargado() {
                     <select
                       id="bulk-delete-career"
                       value={bulkDeleteCriteria.career}
-                      onChange={(event) => setBulkDeleteCriteria((criteria) => ({ ...criteria, career: event.target.value }))}
+                      name="career"
+                      onChange={updateBulkDeleteCriteria}
                       required
                     >
                       <option value="" disabled>Selecciona especialidad</option>
@@ -781,21 +892,22 @@ export default function Encargado() {
                     <select
                       id="bulk-delete-shift"
                       value={bulkDeleteCriteria.shift}
-                      onChange={(event) => setBulkDeleteCriteria((criteria) => ({ ...criteria, shift: event.target.value }))}
+                      name="shift"
+                      onChange={updateBulkDeleteCriteria}
                       required
                     >
                       <option value="" disabled>Selecciona turno</option>
                       {SHIFT_OPTIONS.map((shift) => <option key={shift} value={shift}>{shift}</option>)}
                     </select>
                   </div>
-                  <button className="bulk-delete-button" type="submit">
+                  <button className="bulk-delete-button" type="submit" disabled={isPreparingBulkDelete}>
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M3 6h18M8 6V4h8v2m3 0-.8 14H5.8L5 6m5 4v6m4-6v6"/>
                     </svg>
-                    Borrar grupo
+                    {isPreparingBulkDelete ? 'Verificando...' : 'Borrar grupo'}
                   </button>
                   <div className="student-filter-summary" aria-live="polite">
-                    {bulkDeleteMatchingStudents.length} de {students.length} alumnos
+                    Mostrando {bulkDeleteMatchingStudents.length} de {bulkDeleteTotal} alumnos
                     {hasBulkDeleteCriteria && (
                       <button className="student-filter-clear" type="button" onClick={clearBulkDeleteCriteria}>
                         Limpiar filtros
@@ -818,12 +930,18 @@ export default function Encargado() {
                       </tr>
                     </thead>
                     <tbody>
-                      {bulkDeleteMatchingStudents.length === 0 ? (
+                      {isBulkPreviewLoading ? (
                         <tr>
-                          <td className="student-empty-result" colSpan="7">No se encontraron alumnos con esos criterios.</td>
+                          <td className="student-empty-result" colSpan="7">Cargando vista previa...</td>
+                        </tr>
+                      ) : bulkDeleteMatchingStudents.length === 0 ? (
+                        <tr>
+                          <td className="student-empty-result" colSpan="7">
+                            {hasBulkDeleteCriteria ? 'No se encontraron alumnos con esos criterios.' : 'Selecciona semestre, grupo, especialidad y turno para ver alumnos.'}
+                          </td>
                         </tr>
                       ) : bulkDeleteMatchingStudents.map((student) => {
-                        const count = getRequestCount(student.account);
+                        const count = getRequestCount(student);
                         const risk = count >= 3 ? 'red' : count === 2 ? 'yellow' : count === 1 ? 'green' : 'none';
                         return (
                           <tr key={student._id} className={`risk-${risk}`}>
@@ -844,6 +962,13 @@ export default function Encargado() {
                     </table>
                   </div>
                 </section>
+                <Pagination
+                  page={bulkDeletePage}
+                  total={bulkDeleteTotal}
+                  pageSize={25}
+                  onPageChange={setBulkDeletePage}
+                  label="alumnos del grupo"
+                />
                 </>
               )}
             </div>

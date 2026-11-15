@@ -16,4 +16,6 @@ const alumnoSchema = new mongoose.Schema({
   'contraseña': { type: String, required: true }
 }, { collection: 'alumnos', versionKey: false });
 
+alumnoSchema.index({ especialidad: 1, semestre_grupo: 1, turno: 1 });
+
 module.exports = mongoose.model('Alumno', alumnoSchema);

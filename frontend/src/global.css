@@ -1274,6 +1274,30 @@ input[readonly] {
     font-size: 9px;
     white-space: nowrap;
 }
+.list-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: -8px 0 20px;
+    color: var(--muted);
+    font-size: 12px;
+}
+.list-pagination button {
+    min-height: 34px;
+    padding: 0 12px;
+    border: 1px solid rgba(113, 13, 22, .2);
+    border-radius: 8px;
+    color: var(--wine);
+    background: #fff;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+.list-pagination button:disabled {
+    opacity: .48;
+    cursor: not-allowed;
+}
 .student-filter-clear {
     padding: 0;
     border: 0;
