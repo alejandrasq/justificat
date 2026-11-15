@@ -2311,7 +2311,8 @@ input[readonly] {
     .sidebar-account-menu { margin: 0; }
     .sidebar-account-popup {
         bottom: auto;
-        left: 0;
+        right: 0;
+        left: auto;
         top: calc(100% + 8px);
         width: min(220px, calc(100vw - 24px));
     }
