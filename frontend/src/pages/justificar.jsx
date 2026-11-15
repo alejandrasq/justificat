@@ -6,6 +6,8 @@ import { formatDate } from '../utils/date';
 import { getInitials } from '../utils/initials';
 import LoadingState from '../components/LoadingState';
 
+const getDismissedRequestsStorageKey = (account) => `justificat:dismissed-requests:${account.toLowerCase()}`;
+
 export default function Justificar() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -71,6 +73,21 @@ export default function Justificar() {
           navigate('/encargado');
           return;
         }
+        let dismissedIds = [];
+        try {
+          const storedDismissedIds = window.localStorage.getItem(getDismissedRequestsStorageKey(data.user.account));
+          if (storedDismissedIds) {
+            const parsedDismissedIds = JSON.parse(storedDismissedIds);
+            if (!Array.isArray(parsedDismissedIds) || !parsedDismissedIds.every((id) => typeof id === 'string')) {
+              throw new Error('El formato de los avisos ocultos guardados no es válido.');
+            }
+            dismissedIds = parsedDismissedIds;
+          }
+        } catch (error) {
+          console.error('No se pudieron cargar los avisos ocultos.', error);
+          showToast('No se pudieron cargar tus avisos ocultos. Podrían volver a aparecer.', true);
+        }
+        setDismissedRequestIds(dismissedIds);
         setUser(data.user);
         fetchUserRequests(data.user.account);
       })
@@ -81,7 +98,7 @@ export default function Justificar() {
     return () => {
       active = false;
     };
-  }, [fetchUserRequests, navigate]);
+  }, [fetchUserRequests, navigate, showToast]);
 
   const handleLogout = () => {
     clearSessionToken();
@@ -224,6 +241,19 @@ export default function Justificar() {
   const hasHistoryDateFilter = historyDateFilter.from || historyDateFilter.to;
   const clearHistoryDateFilter = () => setHistoryDateFilter({ from: '', to: '' });
   const visibleRequests = requests.filter((request) => !dismissedRequestIds.includes(request._id));
+  const dismissRequest = (requestId) => {
+    const nextDismissedIds = [...new Set([...dismissedRequestIds, requestId])];
+    try {
+      window.localStorage.setItem(
+        getDismissedRequestsStorageKey(user.account),
+        JSON.stringify(nextDismissedIds)
+      );
+      setDismissedRequestIds(nextDismissedIds);
+    } catch (error) {
+      console.error('No se pudo guardar el aviso oculto.', error);
+      showToast('No se pudo quitar el aviso. Inténtalo de nuevo.', true);
+    }
+  };
 
   if (!user) {
     return (
@@ -530,7 +560,7 @@ export default function Justificar() {
                             type="button"
                             aria-label="Quitar aviso de solicitud de justificante"
                             title="Quitar aviso"
-                            onClick={() => setDismissedRequestIds((current) => [...current, req._id])}
+                            onClick={() => dismissRequest(req._id)}
                           >
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                               <path d="m6 6 12 12M18 6 6 18" />
