@@ -2252,7 +2252,7 @@ input[readonly] {
 @media (max-width: 680px) {
     .topbar { height: 72px; padding: 0 17px; }
     .wordmark { font-size: 30px; }
-    .topbar-caption { font-size: 9px; letter-spacing: .04em; }
+    .topbar-caption { display: none; }
     .account-mark { width: 48px; height: 48px; margin-left: 0; }
     .login-layout {
         min-height: calc(100vh - 72px);
@@ -2391,7 +2391,6 @@ input[readonly] {
 }
 
 @media (max-width: 390px) {
-    .topbar-caption { display: none; }
     .login-layout { padding: 12px 16px 26px; gap: 2px; }
     .school-visual { grid-template-columns: minmax(0, 1fr) 78px; gap: 5px; }
     .school-poster { transform: translateX(19px); }
