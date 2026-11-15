@@ -567,32 +567,32 @@ export default function Justificar() {
                   )}
                 </div>
               </div>
-              <section className="form-card student-history" aria-label="Historial de solicitudes">
-                {requests.length === 0 ? (
-                  <p className="request-empty">Aún no tienes solicitudes de justificante.</p>
-                ) : filteredHistoryRequests.length === 0 ? (
-                  <p className="request-empty">No hay solicitudes en esas fechas.</p>
-                ) : (
-                  <div className="student-history-list">
-                    {filteredHistoryRequests.map((request) => (
-                    <article className="student-history-item" key={request._id}>
-                      <div className="request-card-head">
-                        <div>
-                          <h3>Solicitud de justificante</h3>
-                          <p>{formatDate(request.startDate)} al {formatDate(request.endDate)} · Turno {request.shift || user.shift || 'Matutino'}</p>
-                        </div>
-                        <span className={`status ${request.status}`}>{statusLabel(request.status)}</span>
-                      </div>
-                      <p className="student-history-reason"><strong>Motivo:</strong> {request.reason}</p>
-                      {request.description && <p className="student-history-description">{request.description}</p>}
-                      <p className="student-history-date">
-                        Enviada el {request.createdAt ? new Date(request.createdAt).toLocaleDateString('es-MX') : 'Fecha no disponible'}
-                      </p>
-                    </article>
-                    ))}
-                  </div>
-                )}
-              </section>
+              {requests.length > 0 && (
+                <section className="form-card student-history" aria-label="Historial de solicitudes">
+                  {filteredHistoryRequests.length === 0 ? (
+                    <p className="request-empty">No hay solicitudes en esas fechas.</p>
+                  ) : (
+                    <div className="student-history-list">
+                      {filteredHistoryRequests.map((request) => (
+                        <article className="student-history-item" key={request._id}>
+                          <div className="request-card-head">
+                            <div>
+                              <h3>Solicitud de justificante</h3>
+                              <p>{formatDate(request.startDate)} al {formatDate(request.endDate)} · Turno {request.shift || user.shift || 'Matutino'}</p>
+                            </div>
+                            <span className={`status ${request.status}`}>{statusLabel(request.status)}</span>
+                          </div>
+                          <p className="student-history-reason"><strong>Motivo:</strong> {request.reason}</p>
+                          {request.description && <p className="student-history-description">{request.description}</p>}
+                          <p className="student-history-date">
+                            Enviada el {request.createdAt ? new Date(request.createdAt).toLocaleDateString('es-MX') : 'Fecha no disponible'}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )}
             </div>
           )}
         </main>

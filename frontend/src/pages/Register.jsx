@@ -173,11 +173,6 @@ export default function Register() {
               <div className="field">
                 <label htmlFor="register-account">Correo institucional</label>
                 <input id="register-account" name="cuenta" type="email" pattern="[A-Za-z]+\.[A-Za-z]+\.(alp|alh|alm|ala|alc|al|aia|acb)@cbtis258\.edu\.mx" title="El tercer segmento debe ser alp, alh, alm, ala, alc, al, aia o acb." maxLength="254" autoCapitalize="none" spellCheck="false" required value={formData.cuenta} onChange={handleChange} />
-                <small className="field-hint">
-                  {expectedEmailSuffix
-                    ? `Para ${formData.carrera}, el correo debe terminar en .${expectedEmailSuffix}@cbtis258.edu.mx.`
-                    : 'Selecciona tu especialidad para conocer el código final del correo.'}
-                </small>
               </div>
 
               <div className="field">

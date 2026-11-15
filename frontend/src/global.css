@@ -2179,7 +2179,7 @@ input[readonly] {
 }
 
 @media (max-width: 900px) {
-    .workspace { grid-template-columns: minmax(0, 1fr) 245px; gap: 15px; }
+    .workspace { grid-template-columns: minmax(0, 1fr); gap: 15px; }
     .student-filter-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .student-filter-summary { grid-column: 1 / -1; display: flex; justify-content: space-between; }
     .bulk-delete-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2267,7 +2267,11 @@ input[readonly] {
     .login-card { padding: 23px clamp(20px, 7vw, 34px) 21px; border-radius: 20px; }
     .registration-card { padding: 21px clamp(20px, 7vw, 34px); }
 
-    .app-shell { min-height: calc(100vh - 72px); grid-template-columns: minmax(0, 1fr); }
+    .app-shell {
+        min-height: calc(100vh - 72px);
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+    }
     .sidebar {
         position: sticky;
         top: 0;
@@ -2297,7 +2301,7 @@ input[readonly] {
     }
     .nav-link { width: 54px; height: 54px; }
     .nav-link svg { width: 26px; height: 26px; }
-    main { padding: 28px 16px 36px; }
+    main, .staff-main { padding: 28px 16px 36px; }
     .page-heading { align-items: flex-start; }
     .student-chip { padding-right: 8px; }
     .student-chip .student-name { display: none; }
