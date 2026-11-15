@@ -24,6 +24,15 @@ function normalizeSearchText(value) {
   return value.toLocaleLowerCase('es-MX').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
+function compareStudentsBySemesterAndSurname(studentA, studentB) {
+  return Number(studentA.semester) - Number(studentB.semester)
+    || formatLastNamesFirst(studentA.fullName || '').localeCompare(
+      formatLastNamesFirst(studentB.fullName || ''),
+      'es-MX',
+      { sensitivity: 'base' }
+    );
+}
+
 function highlightRequestName(name, search) {
   const query = normalizeSearchText(search.trim());
   if (!query) return name;
@@ -342,16 +351,7 @@ export default function Encargado() {
       && (!studentFilters.semester || String(student.semester) === studentFilters.semester)
       && (!studentFilters.group || student.group === studentFilters.group)
       && (!studentFilters.shift || (student.shift || 'Matutino') === studentFilters.shift);
-  }).sort((studentA, studentB) => (
-    Number(studentA.semester) - Number(studentB.semester)
-    || (studentA.group || '').localeCompare(studentB.group || '', 'es-MX', { sensitivity: 'base' })
-    || (studentA.career || '').localeCompare(studentB.career || '', 'es-MX', { sensitivity: 'base' })
-    || formatLastNamesFirst(studentA.fullName || '').localeCompare(
-      formatLastNamesFirst(studentB.fullName || ''),
-      'es-MX',
-      { sensitivity: 'base' }
-    )
-  ));
+  }).sort(compareStudentsBySemesterAndSurname);
   const hasStudentFilters = studentSearch.trim()
     || studentFilters.career || studentFilters.semester || studentFilters.group || studentFilters.shift;
   const updateStudentFilter = (event) => {
@@ -371,15 +371,7 @@ export default function Encargado() {
     && (!bulkDeleteCriteria.group || student.group === bulkDeleteCriteria.group)
     && (!bulkDeleteCriteria.career || student.career === bulkDeleteCriteria.career)
     && (!bulkDeleteCriteria.shift || (student.shift || 'Matutino') === bulkDeleteCriteria.shift)
-  )).sort((studentA, studentB) => (
-    Number(studentA.semester) - Number(studentB.semester)
-    || (studentA.group || '').localeCompare(studentB.group || '', 'es-MX', { sensitivity: 'base' })
-    || formatLastNamesFirst(studentA.fullName || '').localeCompare(
-      formatLastNamesFirst(studentB.fullName || ''),
-      'es-MX',
-      { sensitivity: 'base' }
-    )
-  ));
+  )).sort(compareStudentsBySemesterAndSurname);
   const hasBulkDeleteCriteria = bulkDeleteCriteria.semester
     || bulkDeleteCriteria.group || bulkDeleteCriteria.career || bulkDeleteCriteria.shift;
 
