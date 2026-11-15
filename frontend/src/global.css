@@ -911,7 +911,23 @@ input[readonly] {
 }
 
 .request-info { min-width: 0; }
+.request-item-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .request-id { display: block; color: #44383a; font-size: 12px; font-weight: 750; }
+.request-dismiss {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 50%;
+    color: var(--muted);
+    background: transparent;
+}
+.request-dismiss:hover { border-color: #e8c5bf; color: var(--red); background: #fff3ef; }
+.request-dismiss:focus-visible { outline: 3px solid rgba(151, 13, 22, .25); outline-offset: 2px; }
+.request-dismiss svg { width: 17px; height: 17px; }
 .request-date { display: block; margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
 .status {
     display: inline-flex;

@@ -10,6 +10,7 @@ export default function Justificar() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [requests, setRequests] = useState([]);
+  const [dismissedRequestIds, setDismissedRequestIds] = useState([]);
   const [activeSection, setActiveSection] = useState('solicitud');
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -222,6 +223,7 @@ export default function Justificar() {
   });
   const hasHistoryDateFilter = historyDateFilter.from || historyDateFilter.to;
   const clearHistoryDateFilter = () => setHistoryDateFilter({ from: '', to: '' });
+  const visibleRequests = requests.filter((request) => !dismissedRequestIds.includes(request._id));
 
   if (!user) {
     return (
@@ -514,13 +516,26 @@ export default function Justificar() {
               
               {requests.length === 0 ? (
                 <p className="request-empty">Aún no hay solicitudes. Al enviar una aparecerá aquí.</p>
+              ) : visibleRequests.length === 0 ? (
+                <p className="request-empty">No tienes avisos pendientes.</p>
               ) : (
                 <ul className="request-list">
-                  {requests.map((req) => (
+                  {visibleRequests.map((req) => (
                     <li className="request-item" key={req._id}>
                       <span className="request-info">
-                        <span className="request-id">
-                          Solicitud de justificante
+                        <span className="request-item-heading">
+                          <span className="request-id">Solicitud de justificante</span>
+                          <button
+                            className="request-dismiss"
+                            type="button"
+                            aria-label="Quitar aviso de solicitud de justificante"
+                            title="Quitar aviso"
+                            onClick={() => setDismissedRequestIds((current) => [...current, req._id])}
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                              <path d="m6 6 12 12M18 6 6 18" />
+                            </svg>
+                          </button>
                         </span>
                         <span className="request-date">{formatDate(req.startDate)} — {formatDate(req.endDate)} · {req.reason}</span>
                       </span>
